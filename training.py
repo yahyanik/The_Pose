@@ -10,3 +10,5 @@ img = cv2.imread("./database/images/000041029.jpg")
 lables = pandas("dataset")
 
 
+
+
