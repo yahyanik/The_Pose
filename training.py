@@ -1,6 +1,8 @@
 
-
 from pycocotools.coco import COCO
+import pandas as pd
+import json
+
 import numpy as np
 
 import matplotlib.pyplot as plt
@@ -8,13 +10,13 @@ import pylab
 
 dataDir='..'
 dataType='val2017'
-annFile = '../The_Pose/database/coco/annotations/person_keypoints_train2017.json'.format(dataDir,dataType)
+annFile = '../The_Pose/database/coco/annotations/person_keypoints_val2017.json'.format(dataDir,dataType)
 coco_kps=COCO(annFile)
 
-print coco_kps
+with open(annFile) as data_file:
+    data = json.load(data_file)
 
-annIds = coco_kps.getAnnIds()
-
+print data
 
 
 # print labels
