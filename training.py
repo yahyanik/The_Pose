@@ -1,14 +1,20 @@
-import tensorflow as tf
+
+
+from pycocotools.coco import COCO
 import numpy as np
-import pandas as pd
-import cv2
+
+import matplotlib.pyplot as plt
+import pylab
+
+dataDir='..'
+dataType='val2017'
+annFile = '../The_Pose/database/coco/annotations/person_keypoints_train2017.json'.format(dataDir,dataType)
+coco_kps=COCO(annFile)
+
+print coco_kps
+
+annIds = coco_kps.getAnnIds()
 
 
-print "the pose"
 
-img = cv2.imread("./database/images/000041029.jpg")
-lables = pandas("dataset")
-
-
-
-
+# print labels
