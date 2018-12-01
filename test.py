@@ -36,3 +36,8 @@ import skimage.io as io
 # anns = coco_kps.loadAnns(annIds)
 # coco_kps.showAnns(anns)
 # print 'kk'
+
+a = np.zeros((1,2))
+b = np.array ([1,2,3])
+print 6%4
+print b%3
