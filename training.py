@@ -2,8 +2,8 @@
 from __future__ import division
 from pycocotools.coco import COCO
 import numpy as np
-import matplotlib.pyplot as plt
 import pylab
+import json
 import skimage.io as io
 
 
@@ -22,7 +22,8 @@ cats = coco_kps.loadCats(coco_kps.getCatIds())
 nms=[cat['name'] for cat in cats]
 imgIds = coco_kps.getImgIds(catIds=coco_kps.getCatIds(catNms=['person']))
 
-for i in range (6,7):
+new_labels = {}
+for i in range (0,len(imgIds)):
     img = coco_kps.loadImgs(imgIds[i])[0]
     x =  img['width']
     I = io.imread(img['coco_url'])
@@ -53,8 +54,8 @@ for i in range (6,7):
         keypoints *= 10
         id = keypoints.astype(int)
         keypoints_new = keypoints - id
-        print keypoints
-        print keypoints_new
+        # print keypoints
+        # print keypoints_new
 
         if key[2] != 0:
             label[int (id[0]), int (id[1]), 0] = keypoints_new[0]
@@ -84,10 +85,17 @@ for i in range (6,7):
         # label[id[6], id[7]] = [kepoints_new[6],kepoints_new[7],key[23]]
         # label[id[8], id[9]] = [kepoints_new[8],kepoints_new[9],key[26]]
 
+    new_labels[imgIds[i]] = label
 
-    print label.shape
-    print np.max(label)
-    print label[6,3,0]
+
+json = json.dumps(new_labels)
+f = open("new_labels.json","w")
+f.write(json)
+f.close()
+
+
+
+
 
 
 
