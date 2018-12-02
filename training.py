@@ -12,23 +12,17 @@ pylab.rcParams['figure.figsize'] = (8.0, 10.0)
 dataDir='..'
 dataType='val2017'
 coco_kps=COCO('../The_Pose/database/coco/annotations/person_keypoints_train2017.json'.format(dataDir,dataType))
-catIds = coco_kps.getCatIds(catNms=['person'])
 
-
-cats = coco_kps.loadCats(coco_kps.getCatIds())
 # print cats[0]
 
-
-nms=[cat['name'] for cat in cats]
 imgIds = coco_kps.getImgIds(catIds=coco_kps.getCatIds(catNms=['person']))
 
 new_labels = {}
 for i in range (0,len(imgIds)):
     img = coco_kps.loadImgs(imgIds[i])[0]
     x =  img['width']
-    I = io.imread(img['coco_url'])
     y = img['height']
-    annIds = coco_kps.getAnnIds(imgIds=img['id'])
+    annIds = coco_kps.getAnnIds(imgIds=imgIds[i])
     # print annIds
 
     label = np.zeros((10,10,15))
@@ -60,23 +54,23 @@ for i in range (0,len(imgIds)):
         if key[2] != 0:
             label[int (id[0]), int (id[1]), 0] = keypoints_new[0]
             label[int (id[0]), int (id[1]), 1] = keypoints_new[1]
-            label[int (id[0]), int (id[1]), 2] = key[2]
+            label[int (id[0]), int (id[1]), 2] = key[2]*5
         if key[17] != 0:
             label[int(id[2]), int(id[3]), 3] = keypoints_new[2]
             label[int(id[2]), int(id[3]), 4] = keypoints_new[3]
-            label[int (id[2]), int (id[3]), 5] = key[17]
+            label[int (id[2]), int (id[3]), 5] = key[17]*5+1
         if key[20] != 0:
             label[int(id[4]), int(id[5]), 6] = keypoints_new[4]
             label[int(id[4]), int(id[5]), 7] = keypoints_new[5]
-            label[int (id[4]), int (id[5]), 8] = key[20]
+            label[int (id[4]), int (id[5]), 8] = key[20]*5+2
         if key[23] != 0:
             label[int(id[6]), int(id[7]), 9] = keypoints_new[6]
             label[int(id[6]), int(id[7]), 10] = keypoints_new[7]
-            label[int (id[6]), int (id[7]), 11] = key[23]
+            label[int (id[6]), int (id[7]), 11] = key[23]*5+3
         if key[26] != 0:
             label[int(id[8]), int(id[9]), 12] = keypoints_new[8]
             label[int(id[8]), int(id[9]), 13] = keypoints_new[9]
-            label[int (id[8]), int (id[9]), 14] = key[26]
+            label[int (id[8]), int (id[9]), 14] = key[26]*5+4
 
 
         # label[id[0], id[1]] = [kepoints_new[2], kepoints_new[3], key[17]]
@@ -89,7 +83,7 @@ for i in range (0,len(imgIds)):
 
 
 json = json.dumps(new_labels)
-f = open("new_labels.json","w")
+f = open("new_labels_training.json","w")
 f.write(json)
 f.close()
 
