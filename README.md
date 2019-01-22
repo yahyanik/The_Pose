@@ -1,5 +1,12 @@
 # The_Pose
 
+##installing Docker
+Please use the following command to install docker on smaller devices. So the rest of the code can be implemented in the docker container: 
+'''
+curl -sSL https://get.docker.com | sh
+'''
+
+
 The code here is based on the MPII human pose dataset and the model is going to detect human pose for an edge device.
 
 
