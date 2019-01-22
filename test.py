@@ -4,6 +4,7 @@ from pycocotools.coco import COCO
 import numpy as np
 import matplotlib.pyplot as plt
 import pylab
+import cv2
 import skimage.io as io
 
 
@@ -37,7 +38,7 @@ import skimage.io as io
 # coco_kps.showAnns(anns)
 # print 'kk'
 
-a = np.zeros((1,2))
-b = np.array ([1,2,3])
-print 6%4
-print b%3
+img = cv2.imread ('../The_Pose/database/coco/images/val2017/000000532481.jpg')
+print img
+cv2.imshow('img', img)
+cv2.waitKey(0)
