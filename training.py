@@ -9,12 +9,12 @@ class data:
 
     def DataReshape(self):
         coco_kps, imgIds = self.DataRead('../The_Pose/database/coco/annotations/person_keypoints_train2017.json', 'train2017')
-        training = self.labeling(coco_kps, imgIds)
+        training = self.labeling(coco_kps, imgIds,'train')
         dataset_training = (coco_kps, imgIds)
 
 
         coco_kps, imgIds = self.DataRead('../The_Pose/database/coco/annotations/person_keypoints_val2017.json', 'val2017')
-        val = self.labeling(coco_kps, imgIds)
+        val = self.labeling(coco_kps, imgIds, 'val')
         dataset_val = (coco_kps, imgIds)
 
 
@@ -28,7 +28,7 @@ class data:
         imgIds = coco_kps.getImgIds(catIds=coco_kps.getCatIds(catNms=['person']))   #get image IDs that have human in them
         return (coco_kps, imgIds)
 
-    def labeling (self, coco_kps, imgIds):
+    def labeling (self, coco_kps, imgIds, filename):
 
         new_labels = {}         #palceholder for all labels
         # for i in range (0,len(imgIds)):
@@ -127,7 +127,7 @@ class data:
                 print '10000 images are recorded'
 
 
-        f = open("new_labels_training.txt","w")
+        f = open("new_labels_"+filename+".txt","w")
         print 'data is saved successfully'
         f.write(str(new_labels))
         f.close()
@@ -144,9 +144,10 @@ class data:
 
 
 
-data = data()
+if __name__ == 'main':
 
-training, val = data.DataReshape()
+    data = data()
+    training, val, dataset_training, dataset_val = data.DataReshape()
 
 
 
