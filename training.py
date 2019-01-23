@@ -5,11 +5,11 @@ import numpy as np
 import cv2
 import json
 
-class data:
+class data (object):
 
     def DataReshape(self):
         coco_kps, imgIds = self.DataRead('../The_Pose/database/coco/annotations/person_keypoints_train2017.json', 'train2017')
-        training = self.labeling(coco_kps, imgIds,'train')
+        training = self.labeling(coco_kps, imgIds, 'train')
         dataset_training = (coco_kps, imgIds)
 
 
