@@ -2,8 +2,7 @@
 from __future__ import division
 from pycocotools.coco import COCO
 import numpy as np
-import cv2
-import json
+
 
 class data (object):
 
@@ -99,23 +98,23 @@ class data (object):
                 if key[2] != 0:                         #putting data in their respected palce and change label to show what part is detected
                     label[int (id[0]), int (id[1]), 0] = keypoints_new[0]
                     label[int (id[0]), int (id[1]), 1] = keypoints_new[1]
-                    label[int (id[0]), int (id[1]), 2] = key[2]*5       #5 or 10 for nose
+                    label[int (id[0]), int (id[1]), 2] = key[2]/2       #5 or 10 for nose
                 if key[17] != 0:
                     label[int(id[2]), int(id[3]), 3] = keypoints_new[2]
                     label[int(id[2]), int(id[3]), 4] = keypoints_new[3]
-                    label[int (id[2]), int (id[3]), 5] = key[17]*5+1    #6 or 11 for right sholder
+                    label[int (id[2]), int (id[3]), 5] = key[17]/2    #6 or 11 for right sholder
                 if key[20] != 0:
                     label[int(id[4]), int(id[5]), 6] = keypoints_new[4]
                     label[int(id[4]), int(id[5]), 7] = keypoints_new[5]
-                    label[int (id[4]), int (id[5]), 8] = key[20]*5+2    #7 or 12 for left sholder
+                    label[int (id[4]), int (id[5]), 8] = key[20]/2    #7 or 12 for left sholder
                 if key[23] != 0:
                     label[int(id[6]), int(id[7]), 9] = keypoints_new[6]
                     label[int(id[6]), int(id[7]), 10] = keypoints_new[7]
-                    label[int (id[6]), int (id[7]), 11] = key[23]*5+3   #8 or 13 for right arm
+                    label[int (id[6]), int (id[7]), 11] = key[23]/2   #8 or 13 for right arm
                 if key[26] != 0:
                     label[int(id[8]), int(id[9]), 12] = keypoints_new[8]
                     label[int(id[8]), int(id[9]), 13] = keypoints_new[9]
-                    label[int (id[8]), int (id[9]), 14] = key[26]*5+4   #9 or 14 for left arm
+                    label[int (id[8]), int (id[9]), 14] = key[26]/2   #9 or 14 for left arm
 
                 # print 'this is the outcome', label[4, 5, :]
                 # cv2.imshow('image1', imgFile)
