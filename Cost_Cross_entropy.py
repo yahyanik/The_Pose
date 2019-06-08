@@ -5,10 +5,10 @@ from tensorflow.keras.callbacks import TensorBoard
 def CPU_reminder_of_cost(wpar, y_true, batch_size, regular_fac):
 
     all = 1                 # 0.009528889   between zeros and 1s
-    landa = 5             # 0.990561053   between all and zeros
+    landa = 1             # 0.990561053   between all and zeros
     lada = (503705/65088000)      # 0.009438946   between all and 1s
     gamma = 1 - lada          #next change to 5,0.5,1
-    bbx_factor = 5
+    bbx_factor = 1
 
     c1 = tf.reduce_sum(wpar[0], axis=-1)
     c2 = tf.reduce_sum(wpar[1], axis=-1)
