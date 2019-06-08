@@ -7,51 +7,10 @@ import cv2
 
 class data (object):
 
-    def DataReshape(self):
-        coco_kps, imgIds = self.DataRead('../The_Pose/database/coco/annotations/person_keypoints_train2017.json', 'train2017')
-        # training = self.labeling(coco_kps, imgIds, 'train')
-        dataset_training = (coco_kps, imgIds)
-
-
-        coco_kps, imgIds = self.DataRead('../The_Pose/database/coco/annotations/person_keypoints_val2017.json', 'val2017')
-        # val = self.labeling(coco_kps, imgIds, 'val')
-        dataset_val = (coco_kps, imgIds)
-
-
-        return (dataset_training, dataset_val)
-
-
-    def DataRead(self,addr, type):
-        dataDir='..'
-        dataType=type
-        coco_kps=COCO(addr.format(dataDir, dataType))
-        imgIds = coco_kps.getImgIds(catIds=coco_kps.getCatIds(catNms=['person']))   #get image IDs that have human in them
-        return (coco_kps, imgIds)
 
     def labeling (self, coco_kps, imgIds, filename = 'thrain_val'):
 
-        new_labels = {}         #palceholder for all labels
-        # for i in range (0,len(imgIds)):
-        for i in range (0,len(imgIds)):
-        # for i in range (7,10):           # go through each image
 
-            img = coco_kps.loadImgs(imgIds[i])[0]   #get the image to have its dimenssion and get its annotation
-            # imgFile = cv2.imread('../The_Pose/database/coco/images/train2017/'+img['file_name'])
-
-            x = img['width']
-            y = img['height']
-            annIds = coco_kps.getAnnIds(imgIds=imgIds[i], iscrowd=None)
-    # print annIds
-
-            label = np.zeros((10,10,26), dtype=np.float16)    #placeholder for the labels in the annotations
-
-            for id in annIds:
-                anns = coco_kps.loadAnns(id)
-
-            # print anns
-                key = anns[0]['keypoints']
-                bbox = anns[0]['bbox']
-                center = [bbox[0]+bbox[2]/2, bbox[1]+bbox[3]/2]
 
                 # row, column, channels = imgFile.shape
                 # for iii in xrange(row): # to make a mask for the image and cahnge every pixel to black
@@ -139,7 +98,7 @@ class data (object):
                     label[int(id[6]), int(id[7]), 9] = keypoints_new[6]
                     label[int(id[6]), int(id[7]), 10] = keypoints_new[7]
                     label[int (id[6]), int (id[7]), 11] = key[23]/2   #8 or 13 for left arm
-                if key[26] != 2 :
+                if key[26] != 3:
                     label[int(id[8]), int(id[9]), 12] = keypoints_new[8]
                     label[int(id[8]), int(id[9]), 13] = keypoints_new[9]
                     label[int (id[8]), int (id[9]), 14] = key[26]/2   #9 or 14 for right arm
@@ -176,12 +135,6 @@ class data (object):
         # f.close()
         print ('this many images here' , len (new_labels))
         return new_labels
-
-#########################################################################################################
-    # def ImagSet (self, coco_kps, imgIds):
-    #
-    #     for i in range (0,len(self.imgIds)):
-    #         img = coco_kps.loadImgs(self.imgIds[i])[0]
 
 
 
