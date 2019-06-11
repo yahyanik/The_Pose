@@ -87,11 +87,7 @@ def cost (y_pred, y_true):
 
     c5 = tf.sign(y[:, 14]) * (
             tf.squared_difference(y[:, 12] , y_hat[:, 12]) +
-            tf.squared_difference('''
-The tailored cost function for the Human Gesture detection. The cost function has two parts
-The cost runs at GPU and calculates all the value and the CPU_reminder_of_cost runs after that to put every thing together
-The CPU_reminder_of_cost function runs at the CPU and the rest are parallel GPU implementation. 
-'''y[:, 13] , y_hat[:, 13]))
+            tf.squared_difference(y[:, 13] , y_hat[:, 13]))
 
     c6 = tf.sign(y[:, 17]) * (
             tf.squared_difference(y[:, 15] , y_hat[:, 15]) +
