@@ -2,6 +2,12 @@ from __future__ import division
 import tensorflow as tf
 from tensorflow.keras.callbacks import TensorBoard
 
+'''
+The tailored cost function for the Human Gesture detection. The cost function has two parts
+The cost runs at GPU and calculates all the value and the CPU_reminder_of_cost runs after that to put every thing together
+The CPU_reminder_of_cost function runs at the CPU and the rest are parallel GPU implementation. 
+'''
+
 def CPU_reminder_of_cost(wpar, y_true, batch_size, regular_fac):
 
     all = 1                 # 0.009528889   between zeros and 1s
@@ -43,8 +49,8 @@ def CPU_reminder_of_cost(wpar, y_true, batch_size, regular_fac):
     f2 = (gamma * (v11+v21+v31+v41+v51+v61+v71+v81))
     f3 = (lada * (v1+v2+v3+v4+v5+v6+v7+v8))
     f4 = (bbx_factor * b2)
-    # cost_general = (f1+f2+f3+f4)
-    cost_general = f2+f3
+    cost_general = (f1+f2+f3+f4)
+    # cost_general = f2+f3
 
     m = [tf.nn.l2_loss(tf.cast(v, tf.float32))
                                       for v in tf.trainable_variables() if 'bias' not in v.name]
@@ -81,7 +87,11 @@ def cost (y_pred, y_true):
 
     c5 = tf.sign(y[:, 14]) * (
             tf.squared_difference(y[:, 12] , y_hat[:, 12]) +
-            tf.squared_difference(y[:, 13] , y_hat[:, 13]))
+            tf.squared_difference('''
+The tailored cost function for the Human Gesture detection. The cost function has two parts
+The cost runs at GPU and calculates all the value and the CPU_reminder_of_cost runs after that to put every thing together
+The CPU_reminder_of_cost function runs at the CPU and the rest are parallel GPU implementation. 
+'''y[:, 13] , y_hat[:, 13]))
 
     c6 = tf.sign(y[:, 17]) * (
             tf.squared_difference(y[:, 15] , y_hat[:, 15]) +

@@ -2,6 +2,11 @@ from __future__ import division
 import tensorflow as tf
 import numpy as np
 
+'''
+These functions are the metrics that are needed for performance monitoring. The functions are known with their names and 
+tailored to the spesific dataset made to train Human Gestures.
+'''
+
 def mAP_RealImage (Y_true, Y_pred, confidance = 0.2, iou_score=0.5, iou_same_person_score = 0.5):
 
     bbx_pred = []                   #extracting the bounding boxes from prediction

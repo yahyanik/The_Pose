@@ -2,6 +2,14 @@ from __future__ import division
 import tensorflow as tf
 from tensorflow.keras.callbacks import TensorBoard
 
+
+'''
+The tailored cost function for the Human Gesture detection. The cost function has two parts
+The cost runs at GPU and calculates all the value and the CPU_reminder_of_cost runs after that to put every thing together
+The CPU_reminder_of_cost function runs at the CPU and the rest are parallel GPU implementation.
+The cost function is based on the MSE and has several parts for each of the object and its cordinations. Please refer to teh paper 
+'''
+
 def CPU_reminder_of_cost(wpar, y_true, batch_size, regular_fac):
 
     all = 1                 # 0.009528889   between zeros and 1s

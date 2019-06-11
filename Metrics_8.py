@@ -3,6 +3,7 @@ import tensorflow as tf
 import numpy as np
 import skimage.io as io
 
+
 '''
 These functions are the metrics that are needed for performance monitoring. The functions are known with their names and 
 tailored to the spesific dataset made to train Human Gestures.
@@ -394,53 +395,108 @@ class metric_custom(object):
             count_keypoints_totalcases = 0
             count_keypoints_pos_results = 0
             conf = 0.5
-            for i in list:
+            for i in range (0,8):
                 count_keypoints_pos_results += tf.reduce_sum(tf.cast(tf.greater(wpar[0][:, i], conf), 'float'))
+            for i in list:
+                # count_keypoints_pos_results += tf.reduce_sum(tf.cast(tf.greater(wpar[0][:, i], conf), 'float'))
                 count_keypoints_totalcases += tf.cast(tf.count_nonzero(wpar[1][:, i]), 'float')
 
-        # AV_list = []
-        # print wpar[2]
-        # for i in range(0,11):
             summ = tf.reduce_sum(wpar[2]) + tf.reduce_sum(wpar[3]) + tf.reduce_sum(wpar[4]) + tf.reduce_sum(wpar[5]) + \
                    tf.reduce_sum(wpar[6]) + tf.reduce_sum(wpar[7]) + tf.reduce_sum(wpar[8])
             RECAL = tf.where(tf.logical_not(tf.equal(count_keypoints_totalcases, 0)), x=(summ / count_keypoints_totalcases), y=-1)
             PERCISION = tf.where(tf.logical_not(tf.equal(count_keypoints_pos_results, 0)), x=(summ / count_keypoints_pos_results), y=-1)
-        # AV_list.append([RECAL,PERCISION])
-            FP = count_keypoints_pos_results - summ
+            FP_rate = tf.where(tf.logical_not(tf.equal(count_keypoints_totalcases, 0)), x=((count_keypoints_pos_results - summ)/count_keypoints_pos_results), y=-1)
 
-        return RECAL, PERCISION,summ, FP
+            mAP1 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 2]),tf.int64), wpar[0][:,0], 1)[0]
+            mAP2 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 5]),tf.int64), wpar[0][:, 1], 1)[0]
+            mAP3 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 8]),tf.int64), wpar[0][:, 2], 1)[0]
+            mAP4 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 11]),tf.int64), wpar[0][:, 3], 1)[0]
+            mAP5 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 14]),tf.int64), wpar[0][:, 4], 1)[0]
+            mAP6 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 17]),tf.int64), wpar[0][:, 5], 1)[0]
+            mAP7 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 20]),tf.int64), wpar[0][:, 6], 1)[0]
+            mAP8 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 21]),tf.int64), wpar[0][:, 7], 1)[0]
+            mAP = tf.add_n([mAP1+mAP2+mAP3+mAP4+mAP5+mAP6+mAP7+mAP8])/8.0
+
+        return RECAL, PERCISION,mAP, FP_rate, count_keypoints_totalcases, count_keypoints_pos_results, summ
+
+    def body (self, y_hat_re,y_true_re, conf, increase):
+
+
+        tp1 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 0], conf), tf.cast(tf.sign(y_true_re[:, 2]), 'bool')),
+                      'float')
+        tp2 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 1], conf), tf.cast(tf.sign(y_true_re[:, 5]), 'bool')),
+                      'float')
+        tp3 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 2], conf), tf.cast(tf.sign(y_true_re[:, 8]), 'bool')),
+                      'float')
+        tp4 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 3], conf), tf.cast(tf.sign(y_true_re[:, 11]), 'bool')),
+                      'float')
+        tp5 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 4], conf), tf.cast(tf.sign(y_true_re[:, 14]), 'bool')),
+                      'float')
+        tp6 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 5], conf), tf.cast(tf.sign(y_true_re[:, 17]), 'bool')),
+                      'float')
+        tp7 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 6], conf), tf.cast(tf.sign(y_true_re[:, 20]), 'bool')),
+                      'float')
+
+        count_keypoints_pos_results = tf.reduce_sum(tf.cast(tf.greater(y_hat_re[:, 0], conf), 'float'))+ \
+                                      tf.reduce_sum(tf.cast(tf.greater(y_hat_re[:, 1], conf), 'float'))+ \
+                                      tf.reduce_sum(tf.cast(tf.greater(y_hat_re[:, 2], conf), 'float'))+ \
+                                      tf.reduce_sum(tf.cast(tf.greater(y_hat_re[:, 3], conf), 'float'))+ \
+                                      tf.reduce_sum(tf.cast(tf.greater(y_hat_re[:, 4], conf), 'float'))+ \
+                                      tf.reduce_sum(tf.cast(tf.greater(y_hat_re[:, 5], conf), 'float'))+ \
+                                      tf.reduce_sum(tf.cast(tf.greater(y_hat_re[:, 6], conf), 'float'))+ \
+                                      tf.reduce_sum(tf.cast(tf.greater(y_hat_re[:, 7], conf), 'float'))
+
+        count_keypoints_totalcases = tf.cast(tf.count_nonzero(y_true_re[:, 2]), 'float')+ \
+                                     tf.cast(tf.count_nonzero(y_true_re[:, 5]), 'float')+ \
+                                     tf.cast(tf.count_nonzero(y_true_re[:, 8]), 'float')+ \
+                                     tf.cast(tf.count_nonzero(y_true_re[:, 11]), 'float')+ \
+                                     tf.cast(tf.count_nonzero(y_true_re[:, 14]), 'float')+ \
+                                     tf.cast(tf.count_nonzero(y_true_re[:, 17]), 'float')+ \
+                                     tf.cast(tf.count_nonzero(y_true_re[:, 20]), 'float')+ \
+                                     tf.cast(tf.count_nonzero(y_true_re[:, 21]), 'float')
+
+        summ = tf.reduce_sum(tp1) + tf.reduce_sum(tp2) + tf.reduce_sum(tp3) + tf.reduce_sum(tp4) + \
+               tf.reduce_sum(tp5) + tf.reduce_sum(tp6) + tf.reduce_sum(tp7)
+        RECAL = tf.where(tf.logical_not(tf.equal(count_keypoints_totalcases, 0)), x=(summ / count_keypoints_totalcases),y=-1)
+        PERCISION = tf.where(tf.logical_not(tf.equal(count_keypoints_pos_results, 0)),x=(summ / count_keypoints_pos_results), y=-1)
+
+
+
+        return [tp1, tp2, tp3, tp4, tp5, tp6, tp7, tf.add(conf, increase)]
+
+    def condition(self, y_hat_re,y_true_re, conf, increase):
+        return tf.less(conf, 1)
 
     def new_acuracy_parallel(self,y_true, y_pred):
         with tf.variable_scope('new_acuracy_parallel'):
 
-            y_hat_re = tf.reshape(y_pred, [-1, 26])
-            y_true_re = tf.reshape(y_true, [-1, 26])
+            increase = 0.5
             conf = 0.5
+            y_hat_re = tf.reshape(y_pred, [-1, 8])
+            y_true_re = tf.reshape(y_true, [-1, 26])
+            # wpar = tf.while_loop(self.condition, self.body, [y_hat_re, y_true_re, conf, increase])
 
-            wpar_list = self.TP_at_K (y_true_re, y_hat_re, conf)
+            tp1 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 0], conf), tf.cast(tf.sign(y_true_re[:, 2]), 'bool')),
+                          'float')
+            tp2 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 1], conf), tf.cast(tf.sign(y_true_re[:, 5]), 'bool')),
+                          'float')
+            tp3 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 2], conf), tf.cast(tf.sign(y_true_re[:, 8]), 'bool')),
+                          'float')
+            tp4 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 3], conf), tf.cast(tf.sign(y_true_re[:, 11]), 'bool')),
+                          'float')
+            tp5 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 4], conf), tf.cast(tf.sign(y_true_re[:, 14]), 'bool')),
+                          'float')
+            tp6 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 5], conf), tf.cast(tf.sign(y_true_re[:, 17]), 'bool')),
+                          'float')
+            tp7 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 6], conf), tf.cast(tf.sign(y_true_re[:, 20]), 'bool')),
+                          'float')
 
-            # tf.while_loop(conf ==1, )
 
-
-
-        return wpar_list
-
-
-    def TP_at_K (self,y_true_re, y_hat_re, conf):
-
-        with tf.variable_scope('new_acuracy_parallel'):
-
-            tp1 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 2], conf), tf.cast(tf.sign(y_true_re[:, 2]), 'bool')), 'float')
-            tp2 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 5], conf), tf.cast(tf.sign(y_true_re[:, 5]), 'bool')), 'float')
-            tp3 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 8], conf), tf.cast(tf.sign(y_true_re[:, 8]), 'bool')), 'float')
-            tp4 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 11], conf), tf.cast(tf.sign(y_true_re[:, 11]), 'bool')), 'float')
-            tp5 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 14], conf), tf.cast(tf.sign(y_true_re[:, 14]), 'bool')), 'float')
-            tp6 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 17], conf), tf.cast(tf.sign(y_true_re[:, 17]), 'bool')), 'float')
-            tp7 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 20], conf), tf.cast(tf.sign(y_true_re[:, 20]), 'bool')), 'float')
-
-            wpar = (y_hat_re, y_true_re,tp1,tp2,tp3,tp4,tp5,tp6,tp7)
+            wpar = (y_hat_re, y_true_re, tp1, tp2, tp3, tp4, tp5, tp6, tp7)
 
         return wpar
+
+
 
 
 

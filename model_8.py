@@ -29,32 +29,32 @@ class MobileNetV2_normal(object):
     def _build_model(self, num_to_reduce):
         self.i = 0
         with tf.variable_scope('init_conv'):
-            output = tc.layers.conv2d(self.input, 32, 3, 2,
+            output = tc.layers.conv2d(self.input, 64, 3, 2,
                                       normalizer_fn=self.normalizer, normalizer_params=self.bn_params)
         # print("shape after first layer", output.get_shape())
-        self.output = self._inverted_bottleneck(output, 1, 16, 0)
-        self.output = self._inverted_bottleneck(self.output, 6, 24, 1)  # 6 is the t and 34 is the output shape(finlter number and layers are repeated in for the n in the paper
-        self.output = self._inverted_bottleneck(self.output, 6, 24, 0)
-        self.output = self._inverted_bottleneck(self.output, 6, 32, 1)
-        self.output = self._inverted_bottleneck(self.output, 6, 32, 0)
-        self.output = self._inverted_bottleneck(self.output, 6, 32, 0)
+        self.output = self._inverted_bottleneck(output, 1, 32, 0)
+        self.output = self._inverted_bottleneck(self.output, 6, 48, 1)  # 6 is the t and 34 is the output shape(finlter number and layers are repeated in for the n in the paper
+        self.output = self._inverted_bottleneck(self.output, 6, 48, 0)
         self.output = self._inverted_bottleneck(self.output, 6, 64, 1)
         self.output = self._inverted_bottleneck(self.output, 6, 64, 0)
         self.output = self._inverted_bottleneck(self.output, 6, 64, 0)
-        self.output = self._inverted_bottleneck(self.output, 6, 64, 0)
-        self.output = self._inverted_bottleneck(self.output, 6, 96, 0)
-        self.output = self._inverted_bottleneck(self.output, 6, 96, 0)
-        self.output = self._inverted_bottleneck(self.output, 6, 96, 0)
-        self.output = self._inverted_bottleneck(self.output, 6, 160, 1)
+        self.output = self._inverted_bottleneck(self.output, 6, 128, 1)
+        self.output = self._inverted_bottleneck(self.output, 6, 128, 0)
+        self.output = self._inverted_bottleneck(self.output, 6, 128, 0)
+        self.output = self._inverted_bottleneck(self.output, 6, 128, 0)
         self.output = self._inverted_bottleneck(self.output, 6, 160, 0)
         self.output = self._inverted_bottleneck(self.output, 6, 160, 0)
+        self.output = self._inverted_bottleneck(self.output, 6, 160, 0)
+        self.output = self._inverted_bottleneck(self.output, 6, 320, 1)
         self.output = self._inverted_bottleneck(self.output, 6, 320, 0)
+        self.output = self._inverted_bottleneck(self.output, 6, 320, 0)
+        self.output = self._inverted_bottleneck(self.output, 6, 640, 0)
         num_to_reduce = int(num_to_reduce)
-        # self.output = tc.layers.conv2d(self.output, 1280, 1, activation_fn=tf.nn.relu6, normalizer_fn=self.normalizer,
-        #                                normalizer_params=self.bn_params)
-
-        self.output = tc.layers.conv2d(self.output, num_to_reduce*8, 1, activation_fn=tf.nn.relu6, normalizer_fn=self.normalizer,
+        self.output = tc.layers.conv2d(self.output, 2560, 1, activation_fn=tf.nn.relu6, normalizer_fn=self.normalizer,
                                        normalizer_params=self.bn_params)
+
+        # self.output = tc.layers.conv2d(self.output, num_to_reduce*8, 1, activation_fn=tf.nn.relu6, normalizer_fn=self.normalizer,
+        #                                normalizer_params=self.bn_params)
         # self.output = tc.layers.conv2d(self.output, 26, 1, activation_fn = None)
 
         # self.output = tc.layers.softmax(self.output)
@@ -86,14 +86,14 @@ class MobileNetV2_normal(object):
         with tf.variable_scope('head_network'):
             input_flat = tc.layers.flatten(input)
             keypoint_xy_class_probability = tc.layers.fully_connected(input_flat[:, :n_sigmoid],
-                                                                  2400, activation_fn=tf.sigmoid)
-            keypoint_xy_class_probability = tf.reshape(keypoint_xy_class_probability, [-1, 10, 10, 24])
+                                                                  800, activation_fn=tf.sigmoid)
+            output = tf.reshape(keypoint_xy_class_probability, [-1, 10, 10, 8])
 
-            box_wh = tc.layers.fully_connected(input_flat[:, n_sigmoid:], 200, activation_fn=tf.exp)
-            box_wh = tf.reshape(box_wh, [-1, 10, 10, 2])
-
-            output = tf.concat([keypoint_xy_class_probability, box_wh], 3)
-            output = tf.reshape(output, [-1, 10, 10, 26])
+            # box_wh = tc.layers.fully_connected(input_flat[:, n_sigmoid:], 200, activation_fn=tf.exp)
+            # box_wh = tf.reshape(box_wh, [-1, 10, 10, 2])
+            #
+            # output = tf.concat([keypoint_xy_class_probability, box_wh], 3)
+            # output = tf.reshape(output, [-1, 10, 10, 26])
             return output
 
     def drop(self, input, rate, name):
