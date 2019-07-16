@@ -8,12 +8,12 @@ import cv2
 class data (object):
 
     def DataReshape(self):
-        coco_kps, imgIds = self.DataRead('../The_Pose/database/coco/annotations/person_keypoints_train2017.json', 'train2017')
+        coco_kps, imgIds = self.DataRead('/media/yahya/9EEA399CEA39721F/Users/yahya/Desktop/__DATASET__/database/coco/annotations/person_keypoints_train2017.json', 'train2017')
         # training = self.labeling(coco_kps, imgIds, 'train')
         dataset_training = (coco_kps, imgIds)
 
 
-        coco_kps, imgIds = self.DataRead('../The_Pose/database/coco/annotations/person_keypoints_val2017.json', 'val2017')
+        coco_kps, imgIds = self.DataRead('/media/yahya/9EEA399CEA39721F/Users/yahya/Desktop/__DATASET__/database/coco/annotations/person_keypoints_val2017.json', 'val2017')
         # val = self.labeling(coco_kps, imgIds, 'val')
         dataset_val = (coco_kps, imgIds)
 
@@ -122,32 +122,32 @@ class data (object):
         # print keypoints
         # print keypoints_new
 
-                if key[2] != 2:                         #putting data in their respected palce and change label to show what part is detected
+                if key[2] != 0:                         #putting data in their respected palce and change label to show what part is detected
                     label[int (id[0]), int (id[1]), 0] = keypoints_new[0]
                     label[int (id[0]), int (id[1]), 1] = keypoints_new[1]
                     label[int (id[0]), int (id[1]), 2] = key[2]/2       #5 or 10 for nose visible 2
                     # label[int(id[0]), int(id[1]), 2] = key[2]
-                if key[17] != 2:
+                if key[17] != 0:
                     label[int(id[2]), int(id[3]), 3] = keypoints_new[2]
                     label[int(id[2]), int(id[3]), 4] = keypoints_new[3]
                     label[int (id[2]), int (id[3]), 5] = key[17]/2    #6 or 11 for left sholder
-                if key[20] != 2:
+                if key[20] != 0:
                     label[int(id[4]), int(id[5]), 6] = keypoints_new[4]
                     label[int(id[4]), int(id[5]), 7] = keypoints_new[5]
                     label[int (id[4]), int (id[5]), 8] = key[20]/2    #7 or 12 for right sholder
-                if key[23] != 2:
+                if key[23] != 0:
                     label[int(id[6]), int(id[7]), 9] = keypoints_new[6]
                     label[int(id[6]), int(id[7]), 10] = keypoints_new[7]
                     label[int (id[6]), int (id[7]), 11] = key[23]/2   #8 or 13 for left arm
-                if key[26] != 2 :
+                if key[26] != 0 :
                     label[int(id[8]), int(id[9]), 12] = keypoints_new[8]
                     label[int(id[8]), int(id[9]), 13] = keypoints_new[9]
                     label[int (id[8]), int (id[9]), 14] = key[26]/2   #9 or 14 for right arm
-                if key[29] != 2:
+                if key[29] != 0:
                     label[int(id[10]), int(id[11]), 15] = keypoints_new[10]
                     label[int(id[10]), int(id[11]), 16] = keypoints_new[11]
                     label[int (id[10]), int (id[11]), 17] = key[29]/2   #9 or 14 for left hand
-                if key[32] != 2:
+                if key[32] != 0:
                     label[int(id[12]), int(id[13]), 18] = keypoints_new[12]
                     label[int(id[12]), int(id[13]), 19] = keypoints_new[13]
                     label[int (id[12]), int (id[13]), 20] = key[32]/2   #9 or 14 for right hand

@@ -2,96 +2,63 @@ from __future__ import division
 
 
 '''
-The custom model for light human pose detection
+The Keras implementation on Mobilenet for transfer learning
 '''
 
 import tensorflow as tf
+import tensorflow.keras as K
 import tensorflow.contrib as tc
+from tensorflow.keras import regularizers
+
+class MobileNetV2_normal_keras(object):
+
+    def __init__(self, num_to_reduce=2, head_is_training=True, regular_fac=0.01,layers_to_fine_tune=100, include_top = True, fireezed_layers=True):
+
+        IMG_SHAPE = (224, 224, 3)
+        self.head_is_training = head_is_training
+        self.regular_fac = regular_fac
+        self.layers_to_fine_tune=layers_to_fine_tune
+        self._build_model(num_to_reduce, IMG_SHAPE, include_top, fireezed_layers)
 
 
-class MobileNetV2_normal(object):
 
-    def __init__(self, num_to_reduce=2, is_training=True, input_size=224, input_placeholder='give placeholder'):
-        self.input_size = input_size
-        self.is_training = is_training
-        self.normalizer = tc.layers.batch_norm
-        self.bn_params = {'is_training': self.is_training}
-
-        with tf.variable_scope('MobileNetV2_custom'):
-            self._create_placeholders(input_placeholder)
-            self._build_model(num_to_reduce)
-            # self.model = tf.keras.Model(inputs=X_input, outputs=X, name='HappyModel')
-
-    def _create_placeholders(self, input_placeholder):
-        # self.input = tf.placeholder(dtype=tf.float32, shape=[None, self.input_size, self.input_size, 3])
-        self.input = input_placeholder
-
-    def _build_model(self, num_to_reduce):
-        self.i = 0
-        with tf.variable_scope('init_conv'):
-            output = tc.layers.conv2d(self.input, 32, 3, 2)
-            output = tc.layers.batch_norm(output, is_training=self.is_training, updates_collections=None)
-
-        self.output = self._inverted_bottleneck(output, 1, 16, 0)
-        self.output = self._inverted_bottleneck(self.output, 6, 24, 1)  # 6 is the t and 34 is the output shape(finlter number and layers are repeated in for the n in the paper
-        self.output = self._inverted_bottleneck(self.output, 6, 24, 0)
-        self.output = self._inverted_bottleneck(self.output, 6, 32, 1)
-        self.output = self._inverted_bottleneck(self.output, 6, 32, 0)
-        self.output = self._inverted_bottleneck(self.output, 6, 32, 0)
-        self.output = self._inverted_bottleneck(self.output, 6, 64, 1)
-        self.output = self._inverted_bottleneck(self.output, 6, 64, 0)
-        self.output = self._inverted_bottleneck(self.output, 6, 64, 0)
-        self.output = self._inverted_bottleneck(self.output, 6, 64, 0)
-        self.output = self._inverted_bottleneck(self.output, 6, 96, 0)
-        self.output = self._inverted_bottleneck(self.output, 6, 96, 0)
-        self.output = self._inverted_bottleneck(self.output, 6, 96, 0)
-        self.output = self._inverted_bottleneck(self.output, 6, 160, 1)
-        self.output = self._inverted_bottleneck(self.output, 6, 160, 0)
-        self.output = self._inverted_bottleneck(self.output, 6, 160, 0)
-        self.output = self._inverted_bottleneck(self.output, 6, 320, 0)
+    def _build_model(self, num_to_reduce, IMG_SHAPE, include_top, fireezed_layers):
+        input_tensor = K.layers.Input(shape=(320, 320, 3))
+        base_model = K.applications.MobileNetV2(input_tensor=input_tensor,
+                                                       include_top=include_top,
+                                                       weights='imagenet')
+        base_model.trainable = self.head_is_training
+        # print (len(base_model.layers))
         num_to_reduce = int(num_to_reduce)
+        self._head_nework(base_model, num_to_reduce*24*100)
+        self.model = K.models.Model(name='Keypoint_Detection', inputs=base_model.input, outputs=[self.output])
+        # self.model= K.Sequential([base_model])
+        self.model.layers[0] = input_tensor
+        for layer in self.model.layers[:self.layers_to_fine_tune]:
+            layer.trainable = fireezed_layers
 
-        with tf.variable_scope('Feature_maps'):
-            output = tc.layers.conv2d(self.output, num_to_reduce*26, 1, activation_fn=tf.nn.relu6)
-            output = tc.layers.batch_norm(output, is_training=self.is_training, updates_collections=None)
+    def _head_nework(self, base_model, split_point):
 
-        self.output = self._head_nework(output, num_to_reduce*24*100)
+        '''
+        flat = K.layers.Flatten()(base_model.output)
+        dense0 = K.layers.Dense(1600, activation=tf.nn.leaky_relu, kernel_regularizer=regularizers.l2(self.regular_fac))(flat)
+        out0 = K.layers.Dense(2400, activation=tf.sigmoid)(dense0)
+        dense1 = K.layers.Dense(160, activation=tf.nn.leaky_relu, kernel_regularizer=regularizers.l2(self.regular_fac))(flat)
+        out1 = K.layers.Dense(200, activation=tf.sigmoid)(dense1)
+        out_flaten = K.layers.concatenate([out0, out1], axis=-1)
+        self.output = K.layers.Reshape((10, 10, 26))(out_flaten)
+        '''
 
-    def _inverted_bottleneck(self, input, up_sample_rate, channels, subsample):
-        with tf.variable_scope('inverted_bottleneck{}_{}_{}'.format(self.i, up_sample_rate, subsample)):
-            self.i += 1
-            stride = 2 if subsample else 1
+        flat = K.layers.Flatten()(base_model.output)
+        dense0 = K.layers.Dense(3200, activation=tf.nn.leaky_relu,
+                                kernel_regularizer=regularizers.l2(self.regular_fac))(flat)
+        dense1 = K.layers.Dense(1600, activation=tf.nn.leaky_relu,
+                                kernel_regularizer=regularizers.l2(self.regular_fac))(dense0)
+        out0 = K.layers.Dense(800, activation=tf.sigmoid)(dense1)
+        # dense1 = K.layers.Dense(160, activation=tf.nn.leaky_relu, kernel_regularizer=regularizers.l2(self.regular_fac))(
+        #     flat)
+        # out1 = K.layers.Dense(200, activation=tf.sigmoid)(dense1)
+        # out_flaten = K.layers.concatenate([out0, out1], axis=-1)
+        self.output = K.layers.Reshape((10, 10, 8))(out0)
 
-            output = tc.layers.conv2d(input, up_sample_rate * input.get_shape().as_list()[-1], 1, activation_fn=tf.nn.relu6)
-            output = tc.layers.batch_norm(output,is_training=self.is_training, updates_collections=None)
 
-            output = tc.layers.separable_conv2d(output, None, 3, 1, stride=stride, activation_fn=tf.nn.relu6)
-            output = tc.layers.batch_norm(output,is_training=self.is_training, updates_collections=None)
-
-            output = tc.layers.conv2d(output, channels, 1, activation_fn=None)
-            output = tc.layers.batch_norm(output,is_training=self.is_training, updates_collections=None)
-
-            if input.get_shape().as_list()[-1] == channels:
-                output = tf.add(input, output)
-
-            return output
-
-    def _head_nework(self, input, n_sigmoid):
-        with tf.variable_scope('head_network'):
-            input_flat = tc.layers.flatten(input)
-            keypoint_xy_class_probability = tc.layers.fully_connected(input_flat[:, :n_sigmoid],
-                                                                  2400, activation_fn=tf.sigmoid)
-            keypoint_xy_class_probability = tf.reshape(keypoint_xy_class_probability, [-1, 10, 10, 24])
-
-            box_wh = tc.layers.fully_connected(input_flat[:, n_sigmoid:], 200, activation_fn=tf.exp)
-            box_wh = tf.reshape(box_wh, [-1, 10, 10, 2])
-
-            output = tf.concat([keypoint_xy_class_probability, box_wh], 3)
-            output = tf.reshape(output, [-1, 10, 10, 26])
-            return output
-
-    def _drop(self, input, rate, name):
-        with tf.variable_scope('head_network{}'.format(name)):
-            out = tc.layers.dropout(input, keep_prob=(1 - rate), is_training=self.is_training)
-
-            return out

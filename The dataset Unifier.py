@@ -22,7 +22,7 @@ def labeling_mpii(person,y, x):
 
     label = np.zeros((10, 10, 26), dtype=np.float16)  # placeholder for the labels in the annotations
 
-    print (person.shape)
+    # print (person.shape)
     try:
         for i in range(person.shape[1]):
 
@@ -123,7 +123,7 @@ def labeling_mpii(person,y, x):
 
             if (i + 1) % 10000 == 0:
                 print('10000 images are recorded')
-            print('data is saved successfully')
+            # print('data is saved successfully')
 
         return label, flag
     except:
@@ -135,19 +135,47 @@ def labeling_mpii(person,y, x):
     # f = open("new_labels_"+filename+".txt","w")
 
 
+def write_tfrecord_val(data1, coco_kps_f, imgIds_f, name):
+    tfrecords_filename = '../The_Pose/tfrecord/DATASET_VAL.tfrecords'
+    writer = tf.python_io.TFRecordWriter(tfrecords_filename)
+    new_labels = data1.labeling(coco_kps_f, imgIds_f, name)
+    num = 0
+    for i in range(0, len(imgIds_f)):
+        img = coco_kps_f.loadImgs(imgIds_f[i])[0]
+        imgFile = cv2.imread('/media/yahya/9EEA399CEA39721F/Users/yahya/Desktop/__DATASET__/database/coco/images/' + name + '2017/' + img[
+            'file_name'])  # reading each image to put in the dataset variable
+        if (i + 1) % 10000 == 0:
+            print('10000 images are processed')
+        num+=1
+        tmpIMG = cv2.resize(imgFile, (320, 320))
+        annotation = new_labels[imgIds_f[i]]
+        IMG = np.array(tmpIMG)
+        height = IMG.shape[0]
+        width = IMG.shape[1]
+        img_raw = IMG.tostring()
+        annotation_raw = annotation.tostring()
+        example = tf.train.Example(features=tf.train.Features(feature={
+            'height': _int64_feature(height),
+            'width': _int64_feature(width),
+            'image_raw': _bytes_feature(img_raw),
+            'mask_raw': _bytes_feature(annotation_raw)}))
+        writer.write(example.SerializeToString())
+    writer.close()
+    print('number of examples that we have for the val', num)
 
 
 def Data_prepration ():
     data1 = data()
     dataset_training_ids, dataset_val_ids = data1.DataReshape()  #raeding dataset and preparing each image
-    #training and val show the image lables
     coco_kps_t, imgIds_t = dataset_training_ids
     coco_kps_v, imgIds_v = dataset_val_ids
     write_tfrecord(data1, coco_kps_t, imgIds_t, 'train') # make the training dataset
+    # write_tfrecord_val(data1, coco_kps_v, imgIds_v, 'val')  # make the training dataset       #for the training data
 
 
 def _bytes_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
 
 def _int64_feature(value):
     return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
@@ -163,9 +191,10 @@ def write_tfrecord (data1, coco_kps_f, imgIds_f, name):
     for i in range(0, len(imgIds_f)):
 
         img = coco_kps_f.loadImgs(imgIds_f[i])[0]
-        imgFile = cv2.imread('../The_Pose/database/coco/images/' + name + '2017/' + img['file_name'])  # reading each image to put in the dataset variable
-        if (i + 1) % 10000 == 0:
-            print('10000 images are processed')
+        imgFile = cv2.imread('/media/yahya/9EEA399CEA39721F/Users/yahya/Desktop/__DATASET__/database/coco/images/' + name + '2017/' + img['file_name'])  # reading each image to put in the dataset variable
+        if (i) % 100 == 0:
+            print('100 images are processed',i)
+        num+=1
         tmpIMG = cv2.resize(imgFile, (320, 320))
         annotation = new_labels[imgIds_f[i]]
         IMG = np.array(tmpIMG)
@@ -187,49 +216,49 @@ def write_tfrecord (data1, coco_kps_f, imgIds_f, name):
 
         writer.write(example.SerializeToString())
 
-    data = loadmat('../The_Pose/database/mpii_human_pose_v1_u12_2/mpii_human_pose_v1_u12_1.mat')
-    anno = data['RELEASE']['annolist'][0, 0]
-
-    for i, CurrentImg in enumerate(anno[0, :]):
-        print(i)
-        imgFile = cv2.imread('../The_Pose/database/images/' + CurrentImg['image']['name'][0][0][0])
-        print('../The_Pose/database/images/' + CurrentImg['image']['name'][0][0][0])
-        if (i + 1) % 10000 == 0:
-            print('10000 images are processed')
-
-        try:
-            height, width, _ = imgFile.shape
-            tmpLABEL, flag = labeling_mpii(CurrentImg['annorect'], height, width)
-
-        except:
-            continue
-        print(flag)
-        if not flag:
-            continue
-
-        tmpIMG = cv2.resize(imgFile, (320, 320))
-        IMG = np.array(tmpIMG)
-        annotation = tmpLABEL
-        img_raw = IMG.tostring()
-        annotation_raw = annotation.tostring()
-        height1 = IMG.shape[0]
-        width1 = IMG.shape[1]
-
-        if data['RELEASE']['img_train'][0][0][0][i]:
-            # x.append(tmpIMG)
-            # y_t.append(tmpLABEL)
-            num+=1
-            example = tf.train.Example(features=tf.train.Features(feature={
-                'height': _int64_feature(height1),
-                'width': _int64_feature(width1),
-                'image_raw': _bytes_feature(img_raw),
-                # 'image_raw': _bytes_feature(IMG),
-                'mask_raw': _bytes_feature(annotation_raw)}))
-            writer.write(example.SerializeToString())
+    # data = loadmat('/media/yahya/9EEA399CEA39721F/Users/yahya/Desktop/__DATASET__/database/mpii_human_pose_v1_u12_2/mpii_human_pose_v1_u12_1.mat')
+    # anno = data['RELEASE']['annolist'][0, 0]
+    #
+    # for i, CurrentImg in enumerate(anno[0, :]):
+    #     # print(i)
+    #     imgFile = cv2.imread('/media/yahya/9EEA399CEA39721F/Users/yahya/Desktop/__DATASET__/database/images/' + CurrentImg['image']['name'][0][0][0])
+    #     # print('/media/yahya/9EEA399CEA39721F/Users/yahya/Desktop/__DATASET__/database/images/' + CurrentImg['image']['name'][0][0][0])
+    #     if (i + 1) % 10000 == 0:
+    #         print('10000 images are processed')
+    #
+    #     try:
+    #         height, width, _ = imgFile.shape
+    #         tmpLABEL, flag = labeling_mpii(CurrentImg['annorect'], height, width)
+    #
+    #     except:
+    #         continue
+    #     # print(flag)
+    #     if not flag:
+    #         continue
+    #
+    #     tmpIMG = cv2.resize(imgFile, (320, 320))
+    #     IMG = np.array(tmpIMG)
+    #     annotation = tmpLABEL
+    #     img_raw = IMG.tostring()
+    #     annotation_raw = annotation.tostring()
+    #     height1 = IMG.shape[0]
+    #     width1 = IMG.shape[1]
+    #
+    #     if data['RELEASE']['img_train'][0][0][0][i]:
+    #         # x.append(tmpIMG)
+    #         # y_t.append(tmpLABEL)
+    #         num+=1
+    #         example = tf.train.Example(features=tf.train.Features(feature={
+    #             'height': _int64_feature(height1),
+    #             'width': _int64_feature(width1),
+    #             'image_raw': _bytes_feature(img_raw),
+    #             # 'image_raw': _bytes_feature(IMG),
+    #             'mask_raw': _bytes_feature(annotation_raw)}))
+    #         writer.write(example.SerializeToString())
 
     writer.close()
 
-    print( 'number of examples that we have for the', num)
+    print( 'number of examples that we have for the train', num)
 
 
 

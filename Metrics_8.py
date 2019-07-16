@@ -388,37 +388,6 @@ class metric_custom(object):
             wpar = [y_true, y_pred]
         return wpar
 
-
-    def new_acuracy_single (self,wpar):
-        with tf.variable_scope('new_acuracy_single'):
-            list = [2, 5, 8, 11, 14, 17, 20]
-            count_keypoints_totalcases = 0
-            count_keypoints_pos_results = 0
-            conf = 0.5
-            for i in range (0,8):
-                count_keypoints_pos_results += tf.reduce_sum(tf.cast(tf.greater(wpar[0][:, i], conf), 'float'))
-            for i in list:
-                # count_keypoints_pos_results += tf.reduce_sum(tf.cast(tf.greater(wpar[0][:, i], conf), 'float'))
-                count_keypoints_totalcases += tf.cast(tf.count_nonzero(wpar[1][:, i]), 'float')
-
-            summ = tf.reduce_sum(wpar[2]) + tf.reduce_sum(wpar[3]) + tf.reduce_sum(wpar[4]) + tf.reduce_sum(wpar[5]) + \
-                   tf.reduce_sum(wpar[6]) + tf.reduce_sum(wpar[7]) + tf.reduce_sum(wpar[8])
-            RECAL = tf.where(tf.logical_not(tf.equal(count_keypoints_totalcases, 0)), x=(summ / count_keypoints_totalcases), y=-1)
-            PERCISION = tf.where(tf.logical_not(tf.equal(count_keypoints_pos_results, 0)), x=(summ / count_keypoints_pos_results), y=-1)
-            FP_rate = tf.where(tf.logical_not(tf.equal(count_keypoints_totalcases, 0)), x=((count_keypoints_pos_results - summ)/count_keypoints_pos_results), y=-1)
-
-            mAP1 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 2]),tf.int64), wpar[0][:,0], 1)[0]
-            mAP2 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 5]),tf.int64), wpar[0][:, 1], 1)[0]
-            mAP3 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 8]),tf.int64), wpar[0][:, 2], 1)[0]
-            mAP4 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 11]),tf.int64), wpar[0][:, 3], 1)[0]
-            mAP5 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 14]),tf.int64), wpar[0][:, 4], 1)[0]
-            mAP6 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 17]),tf.int64), wpar[0][:, 5], 1)[0]
-            mAP7 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 20]),tf.int64), wpar[0][:, 6], 1)[0]
-            mAP8 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 21]),tf.int64), wpar[0][:, 7], 1)[0]
-            mAP = tf.add_n([mAP1+mAP2+mAP3+mAP4+mAP5+mAP6+mAP7+mAP8])/8.0
-
-        return RECAL, PERCISION,mAP, FP_rate, count_keypoints_totalcases, count_keypoints_pos_results, summ
-
     def body (self, y_hat_re,y_true_re, conf, increase):
 
 
@@ -435,6 +404,8 @@ class metric_custom(object):
         tp6 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 5], conf), tf.cast(tf.sign(y_true_re[:, 17]), 'bool')),
                       'float')
         tp7 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 6], conf), tf.cast(tf.sign(y_true_re[:, 20]), 'bool')),
+                      'float')
+        tp8 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 7], conf), tf.cast(tf.sign(y_true_re[:, 21]), 'bool')),
                       'float')
 
         count_keypoints_pos_results = tf.reduce_sum(tf.cast(tf.greater(y_hat_re[:, 0], conf), 'float'))+ \
@@ -456,7 +427,7 @@ class metric_custom(object):
                                      tf.cast(tf.count_nonzero(y_true_re[:, 21]), 'float')
 
         summ = tf.reduce_sum(tp1) + tf.reduce_sum(tp2) + tf.reduce_sum(tp3) + tf.reduce_sum(tp4) + \
-               tf.reduce_sum(tp5) + tf.reduce_sum(tp6) + tf.reduce_sum(tp7)
+               tf.reduce_sum(tp5) + tf.reduce_sum(tp6) + tf.reduce_sum(tp7)+ tf.reduce_sum(tp8)
         RECAL = tf.where(tf.logical_not(tf.equal(count_keypoints_totalcases, 0)), x=(summ / count_keypoints_totalcases),y=-1)
         PERCISION = tf.where(tf.logical_not(tf.equal(count_keypoints_pos_results, 0)),x=(summ / count_keypoints_pos_results), y=-1)
 
@@ -466,6 +437,36 @@ class metric_custom(object):
 
     def condition(self, y_hat_re,y_true_re, conf, increase):
         return tf.less(conf, 1)
+
+    def new_acuracy_single (self,wpar):
+        with tf.variable_scope('new_acuracy_single'):
+            list = [2, 5, 8, 11, 14, 17, 20, 21]
+            count_keypoints_totalcases = 0
+            count_keypoints_pos_results = 0
+            conf = 0.5
+            for i in range (0,8):
+                count_keypoints_pos_results += tf.reduce_sum(tf.cast(tf.greater(wpar[0][:, i], conf), 'float'))
+            for i in list:
+                # count_keypoints_pos_results += tf.reduce_sum(tf.cast(tf.greater(wpar[0][:, i], conf), 'float'))
+                count_keypoints_totalcases += tf.cast(tf.count_nonzero(wpar[1][:, i]), 'float')
+
+            summ = tf.reduce_sum(wpar[2]) + tf.reduce_sum(wpar[3]) + tf.reduce_sum(wpar[4]) + tf.reduce_sum(wpar[5]) + \
+                   tf.reduce_sum(wpar[6]) + tf.reduce_sum(wpar[7]) + tf.reduce_sum(wpar[8]) + tf.reduce_sum(wpar[9])
+            RECAL = tf.where(tf.logical_not(tf.equal(count_keypoints_totalcases, 0)), x=(summ / count_keypoints_totalcases), y=-1)
+            PERCISION = tf.where(tf.logical_not(tf.equal(count_keypoints_pos_results, 0)), x=(summ / count_keypoints_pos_results), y=-1)
+            FP_rate = tf.where(tf.logical_not(tf.equal(count_keypoints_totalcases, 0)), x=((count_keypoints_pos_results - summ)/count_keypoints_pos_results), y=-1)
+
+            mAP1 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 2]),tf.int64), wpar[0][:,0], 1)[0]
+            mAP2 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 5]),tf.int64), wpar[0][:, 1], 1)[0]
+            mAP3 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 8]),tf.int64), wpar[0][:, 2], 1)[0]
+            mAP4 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 11]),tf.int64), wpar[0][:, 3], 1)[0]
+            mAP5 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 14]),tf.int64), wpar[0][:, 4], 1)[0]
+            mAP6 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 17]),tf.int64), wpar[0][:, 5], 1)[0]
+            mAP7 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 20]),tf.int64), wpar[0][:, 6], 1)[0]
+            mAP8 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 21]),tf.int64), wpar[0][:, 7], 1)[0]
+            mAP = tf.add_n([mAP1+mAP2+mAP3+mAP4+mAP5+mAP6+mAP7+mAP8])/8.0
+
+        return RECAL, PERCISION,mAP, FP_rate, count_keypoints_totalcases, count_keypoints_pos_results, summ
 
     def new_acuracy_parallel(self,y_true, y_pred):
         with tf.variable_scope('new_acuracy_parallel'):
@@ -490,9 +491,11 @@ class metric_custom(object):
                           'float')
             tp7 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 6], conf), tf.cast(tf.sign(y_true_re[:, 20]), 'bool')),
                           'float')
+            tp8 = tf.cast(tf.logical_and(tf.greater(y_hat_re[:, 7], conf), tf.cast(tf.sign(y_true_re[:, 21]), 'bool')),
+                          'float')
 
 
-            wpar = (y_hat_re, y_true_re, tp1, tp2, tp3, tp4, tp5, tp6, tp7)
+            wpar = (y_hat_re, y_true_re, tp1, tp2, tp3, tp4, tp5, tp6, tp7, tp8)
 
         return wpar
 

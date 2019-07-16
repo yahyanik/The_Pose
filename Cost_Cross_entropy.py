@@ -106,14 +106,14 @@ def cost (y_pred, y_true):
     v7 = (-1) * ((-1) * tf.sign(y[:, 20]) + 1) * (tf.log(1-y_hat[:, 20]))
     v8 = (-1) * ((-1) * tf.sign(y[:, 21]) + 1) * (tf.log(1-y_hat[:, 21]))
 
-    v11 = (-1) * tf.sign(y[:, 2]) * (tf.log(1-y_hat[:, 2]))       # in model_1280relu_7 series there is no sign() for the
-    v21 = (-1) * tf.sign(y[:, 5]) * (tf.log(1-y_hat[:, 5]))   # y_hat in the error calculation just one for before the error
-    v31 = (-1) * tf.sign(y[:, 8]) * (tf.log(1-y_hat[:, 8]))
-    v41 = (-1) * tf.sign(y[:, 11]) * (tf.log(1-y_hat[:, 11]))
-    v51 = (-1) * tf.sign(y[:, 14]) * (tf.log(1-y_hat[:, 14]))
-    v61 = (-1) * tf.sign(y[:, 17]) * (tf.log(1-y_hat[:, 17]))
-    v71 = (-1) * tf.sign(y[:, 20]) * (tf.log(1-y_hat[:, 20]))
-    v81 = (-1) * tf.sign(y[:, 21]) * (tf.log(1-y_hat[:, 21]))
+    v11 = (-1) * tf.sign(y[:, 2]) * (tf.log(y_hat[:, 2]))       # in model_1280relu_7 series there is no sign() for the
+    v21 = (-1) * tf.sign(y[:, 5]) * (tf.log(y_hat[:, 5]))   # y_hat in the error calculation just one for before the error
+    v31 = (-1) * tf.sign(y[:, 8]) * (tf.log(y_hat[:, 8]))
+    v41 = (-1) * tf.sign(y[:, 11]) * (tf.log(y_hat[:, 11]))
+    v51 = (-1) * tf.sign(y[:, 14]) * (tf.log(y_hat[:, 14]))
+    v61 = (-1) * tf.sign(y[:, 17]) * (tf.log(y_hat[:, 17]))
+    v71 = (-1) * tf.sign(y[:, 20]) * (tf.log(y_hat[:, 20]))
+    v81 = (-1) * tf.sign(y[:, 21]) * (tf.log(y_hat[:, 21]))
 
     b1 = tf.sign(y[:, 21]) * (
             tf.squared_difference(y[:, 22] , y_hat[:, 22]) +

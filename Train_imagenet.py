@@ -19,12 +19,12 @@ from sklearn.metrics import average_precision_score
 
 def train (epoch = 500, learning_rate = 0.01, regular_fac = 0.1, num_to_reduce=32, imagesize = 320, batch_size = 32, num_threads = 10, num_gpus = 2):
 
-    FolderName = './model_8{}_2.57.{}_1280_{}_0.5_5'.format(batch_size, learning_rate, regular_fac)
+    FolderName = './model_8{}_2.54.{}_320_{}_0.5_5'.format(batch_size, learning_rate, regular_fac)
     # num_batch = int(81366 / batch_size)     #64115 is the number of examples in the dataset
     num_batch = int(64115 / batch_size)
     tfrecords_filename = '../The_Pose/tfrecord/DATASET_COCO.tfrecords'
     # tfrecords_filename = '../The_Pose/tfrecord/DATASET_gn.tfrecords'
-    tfrecords_filename_val = '../The_Pose/tfrecord/DATASET_VAL.tfrecords'
+    tfrecords_filename_val = '../The_Pose/tfrecord/keypoint_val_Corrected.1.tfrecords'
     filename_queue = tf.train.string_input_producer([tfrecords_filename])
     filename_queue_val = tf.train.string_input_producer([tfrecords_filename_val])
     image, annotation = read_and_decode(imagesize, filename_queue, batch_size, num_threads)

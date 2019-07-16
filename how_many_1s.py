@@ -15,8 +15,8 @@ def train (epoch = 500, learning_rate = 0.005, regular_fac = 0.002, num_to_reduc
     num_batch = int(81366 / batch_size)     #64115 is the number of examples in the dataset
     # num_batch = int(64115 / batch_size)
     # tfrecords_filename = '../The_Pose/tfrecord/DATASET_COCO.tfrecords'
-    tfrecords_filename = '../The_Pose/tfrecord/DATASET_gn.tfrecords'
-    tfrecords_filename_val = '../The_Pose/tfrecord/keypoint_val_Corrected.1.tfrecords'
+    tfrecords_filename = '../The_Pose/tfrecord/DATASET_COCO.tfrecords'
+    tfrecords_filename_val = '../The_Pose/tfrecord/DATASET_VAL.tfrecords'
     filename_queue = tf.train.string_input_producer([tfrecords_filename])
     filename_queue_val = tf.train.string_input_producer([tfrecords_filename_val])
     image, annotation = read_and_decode(imagesize, filename_queue, batch_size, num_threads)
@@ -39,6 +39,9 @@ def train (epoch = 500, learning_rate = 0.005, regular_fac = 0.002, num_to_reduc
         ones_in_class = 0
         koli_in_class = 0
         zeros_in_class = 0
+        a1 = 0
+        kol1 = 0
+        zero1 = 0
 
         for bat in range(num_batch):
         # for bat in range(1):
@@ -54,6 +57,11 @@ def train (epoch = 500, learning_rate = 0.005, regular_fac = 0.002, num_to_reduc
             koli_in_class += w
             zeros_in_class += w - k
 
+            a1 += np.count_nonzero(np.reshape(anno, [-1, 26])[:,21])
+            kol1+=np.reshape(anno, [-1, 26]).shape[0]*100
+            zero1 += np.reshape(anno, [-1, 26]).shape[0]*100 - np.count_nonzero(np.reshape(anno, [-1, 26])[:,21])
+
+
 
 
 
@@ -62,9 +70,15 @@ def train (epoch = 500, learning_rate = 0.005, regular_fac = 0.002, num_to_reduc
         print (check)
         print (num_batch, batch_size)
         print ('ones_in_class',ones_in_class, 'koli_in_class', koli_in_class, 'zeros_in_class', zeros_in_class)
+        print ('these ones and koli and sero dor the 21:', a1, kol1, zero1)
 
         coord.request_stop()
         coord.join(threads)
 
 if __name__ == '__main__':
     train(imagesize=320, num_threads=10) # in the parallel we are still doing batch of 32
+
+
+
+
+#TODO: we need to gather information about the 1s and then imagenet training...

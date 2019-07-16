@@ -68,8 +68,14 @@ class MobileNetV2_normal(object):
         # self.output = self._inverted_bottleneck(self.output, 6, 640, 0)
         num_to_reduce = int(num_to_reduce)
         # print (self.output.shape)
-        self.output = tc.layers.conv2d(self.output, 1280, 1, activation_fn=tf.nn.relu6, normalizer_fn=self.normalizer,
+        self.output = tc.layers.conv2d(self.output, 640, 1, activation_fn=tf.nn.relu6, normalizer_fn=self.normalizer,
                                        normalizer_params=self.bn_params)
+
+        # self.output = tc.layers.conv2d(self.output, num_to_reduce*8, 1, activation_fn=tf.nn.relu6, normalizer_fn=self.normalizer,
+        #                                normalizer_params=self.bn_params)
+        # self.output = tc.layers.conv2d(self.output, 26, 1, activation_fn = None)
+
+        # self.output = tc.layers.softmax(self.output)
 
         self.output = self.head_nework(self.output, num_to_reduce*24*100, num_to_reduce*2*100, num_to_reduce)
         #self.output = self.head_nework(self.output, 3692, 308, num_to_reduce)
@@ -102,12 +108,22 @@ class MobileNetV2_normal(object):
             THE ABSENCE OF THE PARAMETERS IN THE FULLY CONNECTED LAYTER AT THE END MAKES THE NETWORK FROM VERY BAD TO VERY GOOD.
             '''
 
-            output = tc.layers.fully_connected(input_flat, 1280, activation_fn=tf.nn.leaky_relu)
+            output = tc.layers.fully_connected(input_flat, 320, activation_fn=tf.nn.leaky_relu)
+            output = tc.layers.fully_connected(output, 320, activation_fn=None)
+            # output = tc.layers.fully_connected(output, 3200, activation_fn=None)
 
             keypoint_xy_class_probability = tc.layers.fully_connected(output, 800, activation_fn=tf.sigmoid)
             output = tf.reshape(keypoint_xy_class_probability, [-1, 10, 10, 8])
 
+            # box_wh = tc.layers.fully_connected(input_flat[:, n_sigmoid:], 200, activation_fn=tf.exp)
+            # box_wh = tf.reshape(box_wh, [-1, 10, 10, 2])
+            #
+            # output = tf.concat([keypoint_xy_class_probability, box_wh], 3)
+            # output = tf.reshape(output, [-1, 10, 10, 26])
             return output
 
+    def drop(self, input, rate, name):
+        with tf.variable_scope('head_network{}'.format(name)):
+            out = tc.layers.dropout(input, keep_prob=(1 - rate), is_training=self.is_training)
 
-
+            return out
