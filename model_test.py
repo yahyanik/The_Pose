@@ -19,19 +19,25 @@ def test_mAP (learning_rate = 0.0001, layers_not_training = 117,regular_fac = 0.
 
     FolderName = './normal{}_88.{}_{}_{}_0.5_5'.format(batch_size, learning_rate, layers_not_training,regular_fac)
     file_checkpoint = FolderName + "/tmp/model_epoch120.ckpt"
-
+    tensorboard_name = 'TB_VALIDATE_keypoint_keras_{}'.format(int(time.time()))
 
     tfrecords_filename_val = '../The_Pose/tfrecord/DATASET_BLUR_VAL.tfrecords'
     image_val, annotation_val = read_image_tf_data(imagesize, tfrecords_filename_val, batch_size, num_threads)
     metric = metric_custom()
+    metric_list = [metric.RECAL, metric.PERCISION, metric.Distance_parallel, metric.get_max, metric.get_min,
+                   metric.recall_body, metric.percision_body, metric.recall_detection, metric.percision_detection]
 
     model_obj = MobileNetV2_normal_keras(num_to_reduce=num_to_reduce, head_is_training=False, regular_fac=regular_fac,
                                          layers_to_fine_tune=150, include_top=False, fireezed_layers=False)
 
     parallel_model = multi_gpu_model(model_obj.model, gpus=num_gpus)
     parallel_model.compile(optimizer=tf.keras.optimizers.Adam(lr=learning_rate),
-                           loss=my_cost_MSE, metrics=[metric.RECAL, metric.PERCISION, metric.Distance_parallel])
+                           loss=my_cost_MSE, metrics=metric_list)
     parallel_model.load_weights(file_checkpoint)
+    tensorboard = TensorBoard(log_dir=FolderName + '/logs/' + tensorboard_name)
+
+    loss, acc = parallel_model.evaluate(image_val, annotation_val, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
+    print("Restored model, accuracy: {:5.2f}%".format(100 * acc))
 
 
     sk_mAP_result = metric.sk_mAP(parallel_model, batch_size, image_val, annotation_val, 2693)
