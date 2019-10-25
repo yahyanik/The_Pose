@@ -13,6 +13,17 @@ from tensorflow import keras
 import skimage.io as io
 
 
+img1 = cv2.imread('000061164.jpg')
+img = cv2.GaussianBlur(img1,(5,5),0)
+img = cv2.resize(img, (320,320))
+
+img2 = cv2.resize(img1, (320,320))
+img2 = cv2.GaussianBlur(img2,(5,5),0)
+cv2.imshow('img', img)
+cv2.imshow('img1', img1)
+cv2.imshow( 'img2', img2)
+cv2.waitKey(0)
+
 # for i in range (10):
 #     print (i)
 # with open('../The_Pose/tfrecord/X_new_val_3.pickle', 'rb') as f:
@@ -65,25 +76,28 @@ import skimage.io as io
 # cv2.waitKey(0)
 # np_w = np.array ([[[[0],[6]],[[2],[7]],[[3],[8]],[[4],[9]]],[[[12],[30]],[[40],[13]],[[50],[14]],[[60],[15]]], [[[31],[22]],[[41],[23]],[[51],[24]],[[61],[16]]]])
 #
-tfrecords_filename_mpii = '../The_Pose/tfrecord/keypoint_train_DA.tfrecords'
-filename_queue_mpii = tf.train.string_input_producer([tfrecords_filename_mpii])
-image_mpii, annotation_mpii = read_and_decode(320, filename_queue_mpii, 16, 10)
-
-a1 = tf.Variable ([[1,0,0,0],[1,0,1.5,0],[1,0,1,0]])
+# tfrecords_filename_mpii = '../The_Pose/tfrecord/keypoint_train_DA.tfrecords'
+# filename_queue_mpii = tf.train.string_input_producer([tfrecords_filename_mpii])
+# image_mpii, annotation_mpii = read_and_decode(320, filename_queue_mpii, 16, 10)
 #
-a = tf.Variable ([[1,0,1,0],[1.1,0,0,1],[0,1,1,0]])
-
-init_op = tf.initialize_all_variables()
-with tf.Session() as sess:
-#     # Run the variable initializer.
-    sess.run(init_op)
-    sess.run(tf.global_variables_initializer())
-    sess.run(tf.local_variables_initializer())
-    coord = tf.train.Coordinator()
-    threads = tf.train.start_queue_runners(coord=coord)
-# #     # print sess.run(a[:,3:4])
-    img_mpii, anno_mpii = sess.run([image_mpii, annotation_mpii])
-    print (img_mpii.shape)
+# a1 = tf.Variable ([[1,30,0,0],[1,0,1.5,0],[1,0,1,20]])
+# #
+# a = tf.Variable ([[1,0,1,0],[1.1,0,0,1],[0,1,1,0]])
+#
+# init_op = tf.initialize_all_variables()
+# with tf.Session() as sess:
+#
+#
+# #     # Run the variable initializer.
+#     sess.run(init_op)
+#     sess.run(tf.global_variables_initializer())
+#     sess.run(tf.local_variables_initializer())
+#     print (sess.run(tf.reduce_max(a1)))
+#     coord = tf.train.Coordinator()
+#     threads = tf.train.start_queue_runners(coord=coord)
+# # #     # print sess.run(a[:,3:4])
+#     img_mpii, anno_mpii = sess.run([image_mpii, annotation_mpii])
+#     print (img_mpii.shape)
 
 # print (sess.run(a1[:,2:]))
 

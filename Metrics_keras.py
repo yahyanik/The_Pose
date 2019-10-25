@@ -27,6 +27,30 @@ def _parse_function(proto):
 
     return parsed_features['image_raw'], parsed_features["mask_raw"]
 
+def preprocessing (input):
+    # beta = tf.Variable(tf.constant(0.0, shape=[n_out]),
+    #                    name='beta', trainable=True)
+    # gamma = tf.Variable(tf.constant(1.0, shape=[n_out]),
+    #                     name='gamma', trainable=True)
+    # batch_mean, batch_var = tf.nn.moments(x, [0, 1, 2], name='moments')
+    # ema = tf.train.ExponentialMovingAverage(decay=0.5)
+    #
+    # def mean_var_with_update():
+    #     ema_apply_op = ema.apply([batch_mean, batch_var])
+    #     with tf.control_dependencies([ema_apply_op]):
+    #         return tf.identity(batch_mean), tf.identity(batch_var)
+    #
+    # mean, var = tf.cond(phase_train,
+    #                     mean_var_with_update,
+    #                     lambda: (ema.average(batch_mean), ema.average(batch_var)))
+    # normed = tf.nn.batch_normalization(x, mean, var, beta, gamma, 1e-3)
+    mean, variance = tf.nn.moments(input,axes=[0,1,2],keep_dims=False)
+    output = tf.nn.batch_normalization(input,mean,variance,offset=0,scale=1,variance_epsilon=1e-7)
+
+
+    return mean, variance, output
+    # return mean,variance
+
 def read_image_tf_data(imagesize, filename_queue, batch_size, num_threads):
 
 
@@ -51,15 +75,31 @@ def read_image_tf_data(imagesize, filename_queue, batch_size, num_threads):
     # Create your tf representation of the iterator
     image, label = iterator.get_next()
 
+    # annotation_shape = tf.stack([10, 10, 26])
+    label = tf.reshape(label, [-1, 10, 10, 26])
+
     # Bring your picture back in shape
     image = tf.reshape(image, [-1, imagesize, imagesize, 3])
 
     # Create a one hot array for your labels
     # label = tf.one_hot(label, NUM_CLASSES)
-    image / 255
-    print (image.type)
+    image = image / 255
+    # image1 = image[:,:,:,0] /
+    # image2 = image[:, :, :, 1] /
+    # image3 = image[:, :, :, 2] /
+    # image = tf.concat([image1,image2,image3], 3)
+    # print (image.type)
+
+    # image = tf.image.per_image_standardization(image)
+    mean, std, image = preprocessing(image)
+    # shap = image.shape
+    # mean1 = tf.concat([tf.reduce_sum(image[:,:,:,0])/shap[0],
+    #                    tf.reduce_sum(image[:,:,:,1])/shap[1],
+    #                    tf.reduce_sum(image[:,:,:,2])/shap[2]], 0)
 
     return image, label
+    # return image, label
+
 
 def read_and_decode(imagesize, filename_queue, batch_size, num_threads):
 
@@ -224,25 +264,31 @@ class metric_custom(object):
         c7 = tf.sqrt(tf.sign(y[:, 20]) *
                            (tf.square(y[:, 18] - y_hat[:, 18]) + tf.square(y[:, 19] - y_hat[:, 19])))
 
-        wpar = [c1,c2,c3,c4,c5,c6,c7]
-        c1 = tf.reduce_sum(wpar[0])
-        c2 = tf.reduce_sum(wpar[1])
-        c3 = tf.reduce_sum(wpar[2])
-        c4 = tf.reduce_sum(wpar[3])
-        c5 = tf.reduce_sum(wpar[4])
-        c6 = tf.reduce_sum(wpar[5])
-        c7 = tf.reduce_sum(wpar[6])
+        c8 = tf.sqrt(tf.sign(y[:, 21]) *
+                           (tf.square(y[:, 22] - y_hat[:, 22]) + tf.square(y[:, 23] - y_hat[:, 23])))
 
-        count1 = tf.cast(tf.count_nonzero(tf.sign(y[:, 2])), 'float')
-        count2 = tf.cast(tf.count_nonzero(tf.sign(y[:, 5])), 'float')
-        count3 = tf.cast(tf.count_nonzero(tf.sign(y[:, 8])), 'float')
-        count4 = tf.cast(tf.count_nonzero(tf.sign(y[:, 11])), 'float')
-        count5 = tf.cast(tf.count_nonzero(tf.sign(y[:, 14])), 'float')
-        count6 = tf.cast(tf.count_nonzero(tf.sign(y[:, 17])), 'float')
-        count7 = tf.cast(tf.count_nonzero(tf.sign(y[:, 20])), 'float')
-        summ = c1 + c2 + c3 + c4 + c5 + c6 + c7
-        count = count1 + count2 + count3 + count4 + count5 + count6 + count7
-        mean_distance = tf.where(tf.logical_not(tf.equal(count, 0)), x=(summ / tf.cast(count, 'float')), y=-1)
+        wpar = [c1,c2,c3,c4,c5,c6,c7,c8]
+        c1 = tf.reduce_mean(wpar[0])
+        c2 = tf.reduce_mean(wpar[1])
+        c3 = tf.reduce_mean(wpar[2])
+        c4 = tf.reduce_mean(wpar[3])
+        c5 = tf.reduce_mean(wpar[4])
+        c6 = tf.reduce_mean(wpar[5])
+        c7 = tf.reduce_mean(wpar[6])
+        c8 = tf.reduce_mean(wpar[7])
+
+        mean_distance = (c1+c2+c3+c4+c5+c6+c7+c8)/8.0
+
+        # count1 = tf.cast(tf.count_nonzero(tf.sign(y[:, 2])), 'float')
+        # count2 = tf.cast(tf.count_nonzero(tf.sign(y[:, 5])), 'float')
+        # count3 = tf.cast(tf.count_nonzero(tf.sign(y[:, 8])), 'float')
+        # count4 = tf.cast(tf.count_nonzero(tf.sign(y[:, 11])), 'float')
+        # count5 = tf.cast(tf.count_nonzero(tf.sign(y[:, 14])), 'float')
+        # count6 = tf.cast(tf.count_nonzero(tf.sign(y[:, 17])), 'float')
+        # count7 = tf.cast(tf.count_nonzero(tf.sign(y[:, 20])), 'float')
+        # summ = c1 + c2 + c3 + c4 + c5 + c6 + c7
+        # count = count1 + count2 + count3 + count4 + count5 + count6 + count7
+        # mean_distance = tf.where(tf.logical_not(tf.equal(count, 0)), x=(summ / tf.cast(count, 'float')), y=0)
 
         return mean_distance
 
@@ -297,8 +343,26 @@ class metric_custom(object):
 
         summ = tf.reduce_sum(wpar[2]) + tf.reduce_sum(wpar[3]) + tf.reduce_sum(wpar[4]) + tf.reduce_sum(wpar[5]) + \
                tf.reduce_sum(wpar[6]) + tf.reduce_sum(wpar[7]) + tf.reduce_sum(wpar[8]) + tf.reduce_sum(wpar[9])
-        RECAL = tf.where(tf.logical_not(tf.equal(count_keypoints_totalcases, 0)), x=(summ / count_keypoints_totalcases), y=-1)
-        PERCISION = tf.where(tf.logical_not(tf.equal(count_keypoints_pos_results, 0)), x=(summ / count_keypoints_pos_results), y=-1)
+        RECAL = tf.where(tf.logical_not(tf.equal(count_keypoints_totalcases, 0)), x=(summ / count_keypoints_totalcases), y=0)
+        PERCISION = tf.where(tf.logical_not(tf.equal(count_keypoints_pos_results, 0)), x=(summ / count_keypoints_pos_results), y=0)
+
+
+        count_keypoints_totalcases_body = 0
+        count_keypoints_pos_results_body = 0
+        list1 = [2, 5, 8, 11, 14, 17, 20]
+        for i in list1:
+            count_keypoints_totalcases_body += tf.cast(tf.count_nonzero(wpar[1][:, i]), 'float')
+            count_keypoints_pos_results_body += tf.reduce_sum(tf.cast(tf.greater(wpar[0][:, i], conf), 'float'))
+
+        summ_body = tf.reduce_sum(wpar[2]) + tf.reduce_sum(wpar[3]) + tf.reduce_sum(wpar[4]) + tf.reduce_sum(wpar[5]) + \
+               tf.reduce_sum(wpar[6]) + tf.reduce_sum(wpar[7]) + tf.reduce_sum(wpar[8])
+        summ_detction = tf.reduce_sum(wpar[9])
+        count_keypoints_totalcases_detection = tf.cast(tf.count_nonzero(wpar[1][:, 21]), 'float')
+        count_keypoints_pos_results_detection = tf.reduce_sum(tf.cast(tf.greater(wpar[0][:, 21], conf), 'float'))
+        re_body = tf.where(tf.logical_not(tf.equal(count_keypoints_totalcases, 0)), x=(summ_body / count_keypoints_totalcases_body), y=0)
+        re_detection = tf.where(tf.logical_not(tf.equal(count_keypoints_totalcases, 0)), x=(summ_detction / count_keypoints_totalcases_detection), y=0)
+        per_body = tf.where(tf.logical_not(tf.equal(count_keypoints_pos_results, 0)), x=(summ_body / count_keypoints_pos_results_body), y=0)
+        per_detection = tf.where(tf.logical_not(tf.equal(count_keypoints_pos_results, 0)), x=(summ_detction / count_keypoints_pos_results_detection), y=0)
 
         # mAP1 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 2]),tf.int64), wpar[0][:,2], 1)[0]
         # mAP2 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 5]),tf.int64), wpar[0][:, 5], 1)[0]
@@ -309,18 +373,38 @@ class metric_custom(object):
         # mAP7 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 20]),tf.int64), wpar[0][:, 20], 1)[0]
         # mAP8 = tf.metrics.average_precision_at_k(tf.cast(tf.sign(wpar[1][:, 21]),tf.int64), wpar[0][:, 21], 1)[0]
         # mAP = tf.add_n([mAP1+mAP2+mAP3+mAP4+mAP5+mAP6+mAP7+mAP8])/8.0
-        mAP = 1
-        return RECAL, PERCISION, mAP
+        #mAP = 1
+        return RECAL, PERCISION, re_body, re_detection, per_body, per_detection
 
     def RECAL(self,y_true, y_pred):
 
-        re, _, _ = self.new_acuracy_parallel(y_true, y_pred)
-        return re
+        RECAL, PERCISION, re_body, re_detection, per_body, per_detection  = self.new_acuracy_parallel(y_true, y_pred)
+        return RECAL
 
     def PERCISION(self, y_true, y_pred):
 
-        _, pe, _ = self.new_acuracy_parallel(y_true, y_pred)
-        return pe
+        RECAL, PERCISION, re_body, re_detection, per_body, per_detection = self.new_acuracy_parallel(y_true, y_pred)
+        return PERCISION
+
+    def recall_body(self, y_true, y_pred):
+
+        RECAL, PERCISION, re_body, re_detection, per_body, per_detection = self.new_acuracy_parallel(y_true, y_pred)
+        return re_body
+
+    def recall_detection(self, y_true, y_pred):
+
+        RECAL, PERCISION, re_body, re_detection, per_body, per_detection = self.new_acuracy_parallel(y_true, y_pred)
+        return re_detection
+
+    def percision_body(self, y_true, y_pred):
+
+        RECAL, PERCISION, re_body, re_detection, per_body, per_detection = self.new_acuracy_parallel(y_true, y_pred)
+        return per_body
+
+    def percision_detection(self, y_true, y_pred):
+
+        RECAL, PERCISION, re_body, re_detection, per_body, per_detection = self.new_acuracy_parallel(y_true, y_pred)
+        return per_detection
 
     def my_mAP_5(self, y_true, y_pred):
 
@@ -394,6 +478,60 @@ class metric_custom(object):
 
         _, pe, _ = self.new_acuracy_parallel_8(y_true, y_pred)
         return pe
+
+    def sk_mAP(self, parallel_model, batch_size, image_val, annotation_val, val_count):
+
+        init_op = tf.global_variables_initializer()
+        init_l = tf.local_variables_initializer()
+        with tf.Session() as sess:
+            sess.run(init_op)
+            sess.run(init_l)
+
+            sk_map = 0
+            for bat_v in range(int(2693 / batch_size)):
+                img_val, anno_val = sess.run([image_val, annotation_val])
+                y_pred = parallel_model.predict(img_val, batch_size=batch_size)
+                y_true_val = np.reshape(anno_val, [-1, 26])
+                y_hat_val = np.reshape(y_pred, [-1, 26])
+                sk_map1 = average_precision_score(np.sign(y_true_val[:, 2]).astype(int), y_hat_val[:, 2])
+                sk_map2 = average_precision_score(np.sign(y_true_val[:, 5]).astype(int), y_hat_val[:, 5])
+                sk_map3 = average_precision_score(np.sign(y_true_val[:, 8]).astype(int), y_hat_val[:, 8])
+                sk_map4 = average_precision_score(np.sign(y_true_val[:, 11]).astype(int), y_hat_val[:, 11])
+                sk_map5 = average_precision_score(np.sign(y_true_val[:, 14]).astype(int), y_hat_val[:, 14])
+                sk_map6 = average_precision_score(np.sign(y_true_val[:, 17]).astype(int), y_hat_val[:, 17])
+                sk_map7 = average_precision_score(np.sign(y_true_val[:, 20]).astype(int), y_hat_val[:, 20])
+                sk_map8 = average_precision_score(np.sign(y_true_val[:, 21]).astype(int), y_hat_val[:, 21])
+
+                sk_map += ((sk_map1 + sk_map2 + sk_map3 + sk_map4 + sk_map5 + sk_map6 + sk_map7 + sk_map8) / 8.0)
+
+        return sk_map / int(val_count / batch_size)
+
+    def get_max (self, y_true, y_pred):
+
+        return tf.reduce_max(y_pred)
+
+    def get_min(self, y_true, y_pred):
+
+        return tf.reduce_min(y_pred)
+
+    def sk_mAP_tensor(self, y_true, y_pred):
+
+        y_true_val = tf.reshape(y_true, [-1, 26])
+        y_hat_val = tf.reshape(y_pred, [-1, 26])
+        sk_map1 = average_precision_score(np.sign(y_true_val[:, 2]).astype(int), y_hat_val[:, 2])
+        sk_map2 = average_precision_score(np.sign(y_true_val[:, 5]).astype(int), y_hat_val[:, 5])
+        sk_map3 = average_precision_score(np.sign(y_true_val[:, 8]).astype(int), y_hat_val[:, 8])
+        sk_map4 = average_precision_score(np.sign(y_true_val[:, 11]).astype(int), y_hat_val[:, 11])
+        sk_map5 = average_precision_score(np.sign(y_true_val[:, 14]).astype(int), y_hat_val[:, 14])
+        sk_map6 = average_precision_score(np.sign(y_true_val[:, 17]).astype(int), y_hat_val[:, 17])
+        sk_map7 = average_precision_score(np.sign(y_true_val[:, 20]).astype(int), y_hat_val[:, 20])
+        sk_map8 = average_precision_score(np.sign(y_true_val[:, 21]).astype(int), y_hat_val[:, 21])
+
+        sk_map = ((sk_map1 + sk_map2 + sk_map3 + sk_map4 + sk_map5 + sk_map6 + sk_map7 + sk_map8) / 8.0)
+
+        return sk_map
+
+
 
 
 

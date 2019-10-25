@@ -136,7 +136,7 @@ def labeling_mpii(person,y, x):
 
 
 def write_tfrecord_val(data1, coco_kps_f, imgIds_f, name):
-    tfrecords_filename = '../The_Pose/tfrecord/DATASET_VAL.tfrecords'
+    tfrecords_filename = '../The_Pose/tfrecord/DATASET_BLUR_VAL.tfrecords'
     writer = tf.python_io.TFRecordWriter(tfrecords_filename)
     new_labels = data1.labeling(coco_kps_f, imgIds_f, name)
     num = 0
@@ -148,6 +148,7 @@ def write_tfrecord_val(data1, coco_kps_f, imgIds_f, name):
             print('10000 images are processed')
         num+=1
         tmpIMG = cv2.resize(imgFile, (320, 320))
+        tmpIMG = cv2.GaussianBlur(tmpIMG, (5, 5), 0)
         annotation = new_labels[imgIds_f[i]]
         IMG = np.array(tmpIMG)
         height = IMG.shape[0]
@@ -169,8 +170,8 @@ def Data_prepration ():
     dataset_training_ids, dataset_val_ids = data1.DataReshape()  #raeding dataset and preparing each image
     coco_kps_t, imgIds_t = dataset_training_ids
     coco_kps_v, imgIds_v = dataset_val_ids
-    write_tfrecord(data1, coco_kps_t, imgIds_t, 'train') # make the training dataset
-    # write_tfrecord_val(data1, coco_kps_v, imgIds_v, 'val')  # make the training dataset       #for the training data
+    # write_tfrecord(data1, coco_kps_t, imgIds_t, 'train') # make the training dataset
+    write_tfrecord_val(data1, coco_kps_v, imgIds_v, 'val')  # make the training dataset       #for the training data
 
 
 def _bytes_feature(value):
@@ -182,7 +183,7 @@ def _int64_feature(value):
 
 
 def write_tfrecord (data1, coco_kps_f, imgIds_f, name):
-    tfrecords_filename = '../The_Pose/tfrecord/DATASET_COCO.tfrecords'
+    tfrecords_filename = '../The_Pose/tfrecord/DATASET_BLUR_COCO.tfrecords'
     writer = tf.python_io.TFRecordWriter(tfrecords_filename)
 
     new_labels = data1.labeling(coco_kps_f, imgIds_f, name)
@@ -196,6 +197,7 @@ def write_tfrecord (data1, coco_kps_f, imgIds_f, name):
             print('100 images are processed',i)
         num+=1
         tmpIMG = cv2.resize(imgFile, (320, 320))
+        tmpIMG = cv2.GaussianBlur(tmpIMG, (5, 5), 0)
         annotation = new_labels[imgIds_f[i]]
         IMG = np.array(tmpIMG)
         # annotation = np.array(tmpLABEL)
