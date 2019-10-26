@@ -14,7 +14,7 @@ from tensorflow.keras.utils import multi_gpu_model
 import cv2
 
 
-def test_mAP (learning_rate = 0.0001, layers_not_training = 117,regular_fac = 0.001, num_to_reduce=32, imagesize = 320, batch_size = 32, num_threads = 10, num_gpus = 2):
+def test_mAP (epoch = 120, layers_not_training =117, learning_rate = 0.0001, drop_out = 1, regular_fac = 0.1, num_to_reduce=32, imagesize = 320, batch_size = 32, num_threads = 10, num_gpus = 2):
 
 
     FolderName = './normal{}_88.{}_{}_{}_0.5_5'.format(batch_size, learning_rate, layers_not_training,regular_fac)
@@ -27,20 +27,24 @@ def test_mAP (learning_rate = 0.0001, layers_not_training = 117,regular_fac = 0.
     metric_list = [metric.RECAL, metric.PERCISION, metric.Distance_parallel, metric.get_max, metric.get_min,
                    metric.recall_body, metric.percision_body, metric.recall_detection, metric.percision_detection]
 
-    model_obj = MobileNetV2_normal_keras(num_to_reduce=num_to_reduce, head_is_training=False, regular_fac=regular_fac,
-                                         layers_to_fine_tune=150, include_top=False, fireezed_layers=False)
+    model_obj = MobileNetV2_normal_keras(num_to_reduce=num_to_reduce, drop_fac=drop_out, head_is_training=False,
+                                         regular_fac=regular_fac,
+                                         layers_to_fine_tune=layers_not_training, include_top=False, train_layers=False)
 
     parallel_model = multi_gpu_model(model_obj.model, gpus=num_gpus)
     parallel_model.compile(optimizer=tf.keras.optimizers.Adam(lr=learning_rate),
                            loss=my_cost_MSE, metrics=metric_list)
     parallel_model.load_weights(file_checkpoint)
     tensorboard = TensorBoard(log_dir=FolderName + '/logs/' + tensorboard_name)
+    num_batch_val = int(2693 / batch_size)
 
-    loss, acc = parallel_model.evaluate(image_val, annotation_val, batch_size=batch_size, verbose=1, callbacks=[tensorboard])
+    res = parallel_model.predict(image_val, batch_size=1, verbose=1, steps=1)
+    print(res)
+    loss, acc = parallel_model.evaluate(image_val, annotation_val, batch_size=batch_size, steps=num_batch_val, verbose=1, callbacks=[tensorboard])
+
     print("Restored model, accuracy: {:5.2f}%".format(100 * acc))
 
 
-    sk_mAP_result = metric.sk_mAP(parallel_model, batch_size, image_val, annotation_val, 2693)
 
 
 
