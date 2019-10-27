@@ -80,6 +80,7 @@ def read_image_tf_data(imagesize, filename_queue, batch_size, num_threads):
 
     # Bring your picture back in shape
     image = tf.reshape(image, [-1, imagesize, imagesize, 3])
+    # image=tf.image.resize(image,[224,224])
 
     # Create a one hot array for your labels
     # label = tf.one_hot(label, NUM_CLASSES)

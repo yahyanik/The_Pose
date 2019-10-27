@@ -47,16 +47,19 @@ class MobileNetV2_normal_keras(object):
         flat = K.layers.Flatten()(base_model.output)
         flat = K.layers.BatchNormalization()(flat)
         # print(self.drop_fac)
-        flat = K.layers.Dropout((1-self.drop_fac))(flat)
+        # flat = K.layers.Dropout((1-self.drop_fac))(flat)
 
-        dense0 = K.layers.Dense(1000, activation='relu', kernel_regularizer=regularizers.l1_l2(self.regular_fac,self.regular_fac))(flat)
+        # dense0 = K.layers.Dense(1000, activation='relu', kernel_regularizer=regularizers.l1_l2(self.regular_fac,self.regular_fac))(flat)
+        dense0 = K.layers.Dense(1000, activation='relu')(flat)
         #dense0 = K.layers.BatchNormalization()(dense0)
         # dense1 = K.layers.Dense(1000, activation='relu', kernel_regularizer=regularizers.l1(self.regular_fac))(dense0)
         # dense1 = K.layers.BatchNormalization()(dense1)
         # dense2 = K.layers.Dense(2400, activation=None)(dense1)
         out0 = K.layers.Dense(2400, activation='sigmoid')(dense0)
 
-        dense11 = K.layers.Dense(400, activation='relu', kernel_regularizer=regularizers.l1_l2(self.regular_fac,self.regular_fac))(flat)
+        # dense11 = K.layers.Dense(400, activation='relu', kernel_regularizer=regularizers.l1_l2(self.regular_fac,self.regular_fac))(flat)
+        dense11 = K.layers.Dense(400, activation='relu')(flat)
+
         #-p[;''''''''''''''dense11 = K.layers.BatchNormalization()(dense11)
         out1 = K.layers.Dense(200, activation=None)(dense11)
 
