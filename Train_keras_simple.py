@@ -116,7 +116,7 @@ from tensorflow.keras.utils import multi_gpu_model
 def train1 (epoch = 120, layers_not_training =117, learning_rate = 0.0005, drop_out = 0.6, regular_fac = 0.1, num_to_reduce=32, imagesize = 320, batch_size = 64, num_threads = 10, num_gpus = 2):
     #155 is total, 144 is before 320 and 117 is before 63
 
-    FolderName = './normal{}_115.{}_{}_{}_0.5_5_average'.format(batch_size, learning_rate, layers_not_training,regular_fac)
+    FolderName = './normal{}_113.{}_{}_{}_0.5_5_GPU'.format(batch_size, learning_rate, layers_not_training,regular_fac)
     tensorboard_name = 'TB_keypoint_keras_{}'.format(int(time.time()))
     try:
         os.makedirs(FolderName + '/tmp')
@@ -144,8 +144,7 @@ def train1 (epoch = 120, layers_not_training =117, learning_rate = 0.0005, drop_
     metric_list = [metric.RECAL, metric.PERCISION, metric.Distance_parallel, metric.get_max, metric.get_min,
                    metric.recall_body, metric.percision_body, metric.recall_detection, metric.percision_detection]
 
-    parallel_model = multi_gpu_model(model_obj.model, gpus=num_gpus)
-    parallel_model.compile(optimizer=tf.keras.optimizers.Adam(lr=learning_rate),
+    model_obj.model.compile(optimizer=tf.keras.optimizers.Adam(lr=learning_rate),
                   loss=my_cost_MSE, metrics=metric_list)
 
 
@@ -155,9 +154,9 @@ def train1 (epoch = 120, layers_not_training =117, learning_rate = 0.0005, drop_
     checkpoint_dir = os.path.dirname(checkpoint_path)
     cp_callback = k.callbacks.ModelCheckpoint(checkpoint_path, verbose=1, period=5, save_weights_only=False)
     callbacks_list = [tensorboard, cp_callback]
-    print(parallel_model.summary())
-    print('len(model.trainable_variables)', len(parallel_model.layers))
-    history = parallel_model.fit(image, annotation, epochs=epoch, batch_size=batch_size, steps_per_epoch=num_batch,
+    print(model_obj.model.summary())
+    print('len(model.trainable_variables)', len(model_obj.model.layers))
+    history = model_obj.model.fit(image, annotation, epochs=epoch, batch_size=batch_size, steps_per_epoch=num_batch,
                              validation_data=(image_val,annotation_val), validation_steps=num_batch_val,callbacks=callbacks_list)
     init_op = tf.global_variables_initializer()
     init_l = tf.local_variables_initializer()
@@ -185,7 +184,7 @@ def train1 (epoch = 120, layers_not_training =117, learning_rate = 0.0005, drop_
             # print (mean_val, std_val)
 
 
-            pre_val = parallel_model.predict(img_val)
+            pre_val = model_obj.model.predict(img_val)
             print(pre_val.shape)
 
             y_true_val = np.reshape(anno_val, [-1, 26])

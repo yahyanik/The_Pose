@@ -18,6 +18,7 @@ class MobileNetV2_normal_keras(object):
         self.head_is_training = head_is_training
         self.drop_fac = drop_fac
         self.regular_fac = regular_fac
+        # self.input_tensor = tf.placeholder('float32', shape=(1,320,320,3)) # use this line for the Flops question
         self.input_tensor = K.layers.Input(shape=(320, 320, 3))
         self.layers_to_fine_tune=layers_to_fine_tune
         self._build_model(num_to_reduce, include_top, train_layers)
@@ -30,10 +31,9 @@ class MobileNetV2_normal_keras(object):
         base_model = K.applications.MobileNetV2(input_tensor=self.input_tensor,
                                                        include_top=include_top,
                                                        weights='imagenet') # not including top
-        # base_model.trainable = self.head_is_training
         for layer in base_model.layers[:self.layers_to_fine_tune]:
             layer.trainable = train_layers
-        # print (base_model.summary())
+        print (base_model.summary())
         # print ('len(basemodel.trainable_variables)', len(base_model.layers))
         # num_to_reduce = int(num_to_reduce)
         self._head_nework(base_model, 1180)     #num_to_reduce*24*100
@@ -44,27 +44,37 @@ class MobileNetV2_normal_keras(object):
 
     def _head_nework(self, base_model, split_point):
 
-        flat = K.layers.Flatten()(base_model.output)
+        # flat = K.layers.Dropout((1 - self.drop_fac))(base_model.output)
+        # flat = K.layers.Conv2D(1024, (1, 1), activation='relu')(flat)
+        # flat = K.layers.Dropout((1 - self.drop_fac))(flat)
+        # flat = K.layers.Conv2D(512, (1, 1), activation='relu')(flat)
+
+        flat = K.layers.AveragePooling2D(pool_size=(10, 10), strides=None, padding='valid', data_format=None)(base_model.output)
+        flat = K.layers.Flatten()(flat)
+        # flat = K.layers.Flatten()(base_model.output)
         flat = K.layers.BatchNormalization()(flat)
         # print(self.drop_fac)
-        # flat = K.layers.Dropout((1-self.drop_fac))(flat)
+        flat = K.layers.Dropout((1-self.drop_fac))(flat)
 
-        # dense0 = K.layers.Dense(1000, activation='relu', kernel_regularizer=regularizers.l1_l2(self.regular_fac,self.regular_fac))(flat)
-        dense0 = K.layers.Dense(1000, activation='relu')(flat)
-        #dense0 = K.layers.BatchNormalization()(dense0)
+        dense0 = K.layers.Dense(1024, activation='relu', kernel_regularizer=regularizers.l1_l2(self.regular_fac,self.regular_fac))(flat)
+        # dense0 = K.layers.Dense(1000, activation='relu')(flat)
+        # dense0 = K.layers.BatchNormalization()(dense0)
         # dense1 = K.layers.Dense(1000, activation='relu', kernel_regularizer=regularizers.l1(self.regular_fac))(dense0)
         # dense1 = K.layers.BatchNormalization()(dense1)
-        # dense2 = K.layers.Dense(2400, activation=None)(dense1)
         out0 = K.layers.Dense(2400, activation='sigmoid')(dense0)
+        # out0 = K.layers.Conv2D(24, (1,1), activation='sigmoid')(flat)
 
         # dense11 = K.layers.Dense(400, activation='relu', kernel_regularizer=regularizers.l1_l2(self.regular_fac,self.regular_fac))(flat)
-        dense11 = K.layers.Dense(400, activation='relu')(flat)
+        # dense11 = K.layers.Dense(400, activation='relu')(flat)
 
         #-p[;''''''''''''''dense11 = K.layers.BatchNormalization()(dense11)
-        out1 = K.layers.Dense(200, activation=None)(dense11)
+        dense1 = K.layers.Dense(64, activation='relu',kernel_regularizer=regularizers.l1(self.regular_fac))(flat)
+        out1 = K.layers.Dense(200, activation=None)(dense1)
 
         out_flaten = K.layers.concatenate([out0, out1], axis=-1)
         self.output = K.layers.Reshape((10, 10, 26))(out_flaten)
+
+        # self.output= K.layers.concatenate([out0, out1], axis=-1)
 
 
 
@@ -92,6 +102,14 @@ class MobileNetV2_normal_keras(object):
 #todo: model 84 is the same with 91 not trained. 67 recall and pre 29.
 #todo: 85 is 91 nontraining with 1000 and 1000  with 0.8 drop and .05 reg. recall 66 and per of 28.
 #todo: 86 with 91 and 0.08 and 0.7 has 63 and 30.
-#todo: 87 63 o 26 ba
+#todo: 89 with conv2d ba 512 neuron ba 0.7 va 0.1 has the recal 40 and percision 40 as well
+#todo: 90 ith conv2d ba 256 neurons ba 0.7 va 0.1 has the recall 36 va percision 40 a well
+#todo: 92 with conv2d 4096 0.8 va 0.005 53 20
+#todo: 93 qith 2 4096 0.8 va 0.005 53 va 22
+#todo: 94 with 1024 0.7 va 0.05 53 vaf 22
+#todo: log and MSE gives nan
+#todo: 95 with 117 1024 0.7 va 0.01 53 vaf 18 ba log
+#todo: 96 with 144 1024 0.6 va 0.01 36 vaf 11 ba log
+#todo: with 256 node recall 51 and pre is 18
 
 
