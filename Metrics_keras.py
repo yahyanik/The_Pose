@@ -309,9 +309,9 @@ class metric_custom(object):
 
         return auc_st
 
-    def new_acuracy_parallel(self,y_true, y_pred):
+    def new_acuracy_parallel(self,y_true, y_pred, conf = 0.5):
 
-        conf = 0.5
+        # conf = 0.5
         y_hat_re = tf.reshape(y_pred, [-1, 26])
         y_true_re = tf.reshape(y_true, [-1, 26])
 
@@ -378,32 +378,26 @@ class metric_custom(object):
         return RECAL, PERCISION, re_body, re_detection, per_body, per_detection
 
     def RECAL(self,y_true, y_pred):
-
         RECAL, PERCISION, re_body, re_detection, per_body, per_detection  = self.new_acuracy_parallel(y_true, y_pred)
         return RECAL
 
     def PERCISION(self, y_true, y_pred):
-
         RECAL, PERCISION, re_body, re_detection, per_body, per_detection = self.new_acuracy_parallel(y_true, y_pred)
         return PERCISION
 
     def recall_body(self, y_true, y_pred):
-
         RECAL, PERCISION, re_body, re_detection, per_body, per_detection = self.new_acuracy_parallel(y_true, y_pred)
         return re_body
 
     def recall_detection(self, y_true, y_pred):
-
         RECAL, PERCISION, re_body, re_detection, per_body, per_detection = self.new_acuracy_parallel(y_true, y_pred)
         return re_detection
 
     def percision_body(self, y_true, y_pred):
-
         RECAL, PERCISION, re_body, re_detection, per_body, per_detection = self.new_acuracy_parallel(y_true, y_pred)
         return per_body
 
     def percision_detection(self, y_true, y_pred):
-
         RECAL, PERCISION, re_body, re_detection, per_body, per_detection = self.new_acuracy_parallel(y_true, y_pred)
         return per_detection
 
@@ -532,11 +526,80 @@ class metric_custom(object):
 
         return sk_map
 
+    def avg_RECAL(self,y_true, y_pred):
+        RECAL_1, _, _, _, _, _  = self.new_acuracy_parallel(y_true, y_pred,0.1)
+        RECAL_2, _, _, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.2)
+        RECAL_3, _, _, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.3)
+        RECAL_4, _, _, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.4)
+        RECAL_5, _, _, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.5)
+        RECAL_6, _, _, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.6)
+        RECAL_7, _, _, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.7)
+        RECAL_8, _, _, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.8)
+        RECAL_9, _, _, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.9)
+        RECAL = (RECAL_1+RECAL_2+RECAL_3+RECAL_4+RECAL_5+RECAL_6+RECAL_7+RECAL_8+RECAL_9)/9
+        return RECAL
 
+    def avg_PERCISION(self,y_true, y_pred):
+        _, RECAL_1, _, _, _, _  = self.new_acuracy_parallel(y_true, y_pred,0.1)
+        _, RECAL_2, _, _, _, _  = self.new_acuracy_parallel(y_true, y_pred,0.2)
+        _, RECAL_3, _, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.3)
+        _, RECAL_4, _, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.4)
+        _, RECAL_5, _, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.5)
+        _, RECAL_6, _, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.6)
+        _, RECAL_7, _, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.7)
+        _, RECAL_8, _, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.8)
+        _, RECAL_9, _, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.9)
+        RECAL = (RECAL_1+RECAL_2+RECAL_3+RECAL_4+RECAL_5+RECAL_6+RECAL_7+RECAL_8+RECAL_9)/9
+        return RECAL
 
+    def avg_recall_body(self,y_true, y_pred):
+        _, _, RECAL_1, _, _, _  = self.new_acuracy_parallel(y_true, y_pred,0.1)
+        _, _, RECAL_2, _, _, _  = self.new_acuracy_parallel(y_true, y_pred,0.2)
+        _, _, RECAL_3, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.3)
+        _, _, RECAL_4, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.4)
+        _, _, RECAL_5, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.5)
+        _, _, RECAL_6, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.6)
+        _, _, RECAL_7, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.7)
+        _, _, RECAL_8, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.8)
+        _, _, RECAL_9, _, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.9)
+        RECAL = (RECAL_1+RECAL_2+RECAL_3+RECAL_4+RECAL_5+RECAL_6+RECAL_7+RECAL_8+RECAL_9)/9
+        return RECAL
 
+    def avg_recall_detection(self,y_true, y_pred):
+        _, _, _, RECAL_1, _, _  = self.new_acuracy_parallel(y_true, y_pred,0.1)
+        _, _, _, RECAL_2, _, _  = self.new_acuracy_parallel(y_true, y_pred,0.2)
+        _, _, _, RECAL_3, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.3)
+        _, _, _, RECAL_4, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.4)
+        _, _, _, RECAL_5, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.5)
+        _, _, _, RECAL_6, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.6)
+        _, _, _, RECAL_7, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.7)
+        _, _, _, RECAL_8, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.8)
+        _, _, _, RECAL_9, _, _ = self.new_acuracy_parallel(y_true, y_pred, 0.9)
+        RECAL = (RECAL_1+RECAL_2+RECAL_3+RECAL_4+RECAL_5+RECAL_6+RECAL_7+RECAL_8+RECAL_9)/9
+        return RECAL
 
+    def avg_percision_body(self,y_true, y_pred):
+        _, _, _, _, RECAL_1, _  = self.new_acuracy_parallel(y_true, y_pred,0.1)
+        _, _, _, _, RECAL_2, _  = self.new_acuracy_parallel(y_true, y_pred,0.2)
+        _, _, _, _, RECAL_3, _ = self.new_acuracy_parallel(y_true, y_pred, 0.3)
+        _, _, _, _, RECAL_4, _ = self.new_acuracy_parallel(y_true, y_pred, 0.4)
+        _, _, _, _, RECAL_5, _ = self.new_acuracy_parallel(y_true, y_pred, 0.5)
+        _, _, _, _, RECAL_6, _ = self.new_acuracy_parallel(y_true, y_pred, 0.6)
+        _, _, _, _, RECAL_7, _ = self.new_acuracy_parallel(y_true, y_pred, 0.7)
+        _, _, _, _, RECAL_8, _ = self.new_acuracy_parallel(y_true, y_pred, 0.8)
+        _, _, _, _, RECAL_9, _ = self.new_acuracy_parallel(y_true, y_pred, 0.9)
+        RECAL = (RECAL_1+RECAL_2+RECAL_3+RECAL_4+RECAL_5+RECAL_6+RECAL_7+RECAL_8+RECAL_9)/9
+        return RECAL
 
-
-
-
+    def avg_percision_detection(self,y_true, y_pred):
+        _, _, _, _, _, RECAL_1  = self.new_acuracy_parallel(y_true, y_pred,0.1)
+        _, _, _, _, _, RECAL_2  = self.new_acuracy_parallel(y_true, y_pred,0.2)
+        _, _, _, _, _, RECAL_3 = self.new_acuracy_parallel(y_true, y_pred, 0.3)
+        _, _, _, _, _, RECAL_4 = self.new_acuracy_parallel(y_true, y_pred, 0.4)
+        _, _, _, _, _, RECAL_5 = self.new_acuracy_parallel(y_true, y_pred, 0.5)
+        _, _, _, _, _, RECAL_6 = self.new_acuracy_parallel(y_true, y_pred, 0.6)
+        _, _, _, _, _, RECAL_7 = self.new_acuracy_parallel(y_true, y_pred, 0.7)
+        _, _, _, _, _, RECAL_8 = self.new_acuracy_parallel(y_true, y_pred, 0.8)
+        _, _, _, _, _, RECAL_9 = self.new_acuracy_parallel(y_true, y_pred, 0.9)
+        RECAL = (RECAL_1+RECAL_2+RECAL_3+RECAL_4+RECAL_5+RECAL_6+RECAL_7+RECAL_8+RECAL_9)/9
+        return RECAL

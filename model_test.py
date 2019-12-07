@@ -64,7 +64,7 @@ def test_mAP (epoch = 120, layers_not_training =117, learning_rate = 0.001, drop
             # print(res.shape)
             # print(np.min(res))
             # print(np.unique(res))
-            res = vg.predict(img, batch_size=1, verbose=1, steps=500)
+            # res = vg.predict(img, batch_size=1, verbose=1, steps=500)
             # res = openpose.predict(img, batch_size=1, verbose=1, steps=500)
 
             tok=datetime.datetime.now()

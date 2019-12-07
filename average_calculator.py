@@ -27,19 +27,20 @@ def train1 (epoch = 120, layers_not_training =117, learning_rate = 0.0005, drop_
                                          layers_to_fine_tune=layers_not_training, include_top=False, train_layers=False)
     metric = metric_custom()
     metric_list = [metric.RECAL, metric.PERCISION, metric.Distance_parallel, metric.get_max, metric.get_min,
-                   metric.recall_body, metric.percision_body, metric.recall_detection, metric.percision_detection]
+                   metric.recall_body, metric.percision_body, metric.recall_detection, metric.percision_detection,
+                   metric.avg_RECAL, metric.avg_PERCISION, metric.avg_recall_body, metric.avg_recall_detection,
+                   metric.avg_percision_body,metric.avg_percision_detection]
 
     parallel_model = multi_gpu_model(model_obj.model, gpus=num_gpus)
     parallel_model.compile(optimizer=tf.keras.optimizers.Adam(lr=learning_rate),
                   loss=my_cost_MSE, metrics=metric_list)
 
-    file_checkpoint = './'
+    file_checkpoint = './normal64_111.0.0005_117_0.1_0.5_5_1024_final/tmp/model_epoch95.hdf5'
     parallel_model.load_weights(file_checkpoint)
 
-    cp_callback = k.callbacks.ModelCheckpoint(checkpoint_path, verbose=1, period=5, save_weights_only=False)
-    callbacks_list = [cp_callback]
-    history = parallel_model.fit(image_val, annotation_val, batch_size=batch_size, steps_per_epoch=num_batch_val,
-                                 callbacks=callbacks_list)
+    # cp_callback = k.callbacks.ModelCheckpoint(checkpoint_path, verbose=1, period=5, save_weights_only=False)
+    # callbacks_list = [cp_callback]
+    history = parallel_model.predict(image_val, annotation_val, batch_size=batch_size, steps=num_batch_val)
 
 
 

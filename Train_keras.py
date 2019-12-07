@@ -116,7 +116,7 @@ from tensorflow.keras.utils import multi_gpu_model
 def train1 (epoch = 120, layers_not_training =117, learning_rate = 0.0005, drop_out = 0.6, regular_fac = 0.1, num_to_reduce=32, imagesize = 320, batch_size = 64, num_threads = 10, num_gpus = 2):
     #155 is total, 144 is before 320 and 117 is before 63
 
-    FolderName = './normal{}_115.{}_{}_{}_0.5_5_average'.format(batch_size, learning_rate, layers_not_training,regular_fac)
+    FolderName = './normal{}_120.{}_{}_{}_0.5_5_average'.format(batch_size, learning_rate, layers_not_training,regular_fac)
     tensorboard_name = 'TB_keypoint_keras_{}'.format(int(time.time()))
     try:
         os.makedirs(FolderName + '/tmp')
@@ -142,7 +142,9 @@ def train1 (epoch = 120, layers_not_training =117, learning_rate = 0.0005, drop_
 
     metric = metric_custom()
     metric_list = [metric.RECAL, metric.PERCISION, metric.Distance_parallel, metric.get_max, metric.get_min,
-                   metric.recall_body, metric.percision_body, metric.recall_detection, metric.percision_detection]
+                   metric.recall_body, metric.percision_body, metric.recall_detection, metric.percision_detection,
+                   metric.avg_RECAL, metric.avg_PERCISION, metric.avg_recall_body, metric.avg_recall_detection,
+                   metric.avg_percision_body,metric.avg_percision_detection]
 
     parallel_model = multi_gpu_model(model_obj.model, gpus=num_gpus)
     parallel_model.compile(optimizer=tf.keras.optimizers.Adam(lr=learning_rate),
